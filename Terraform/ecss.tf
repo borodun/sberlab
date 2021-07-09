@@ -18,7 +18,7 @@ resource "sbercloud_compute_instance" "ecs_01" {
   availability_zone = "ru-moscow-1a"
   key_pair = "KeyPair-borodin"
 
-  user_data = file("./script.sh")
+  user_data = file("./script2.sh")
 
   system_disk_type = "SAS"
   system_disk_size = 20
@@ -37,7 +37,7 @@ resource "sbercloud_compute_instance" "ecs_master" {
   availability_zone = "ru-moscow-1a"
   key_pair = "KeyPair-borodin"
 
-  user_data = file("./script.sh")
+  user_data = file("./script2.sh")
 
   system_disk_type = "SAS"
   system_disk_size = 20
