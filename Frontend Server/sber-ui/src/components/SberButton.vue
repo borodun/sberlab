@@ -6,7 +6,7 @@
       <p><input v-model="offset" placeholder="offset"/></p>
       <p><input v-model="limit" placeholder="limit"/></p>
       <button v-on:click="showInfo">Query</button>
-      <h1 v-if="jsonInfo.error_msg">{{ jsonInfo.error_msg }}</h1>
+      <h1 v-if="jsonInfo.error_msg">Error message: {{ jsonInfo.error_msg }}</h1>
       <h1 v-if="jsonInfo.count">Total ECS count: {{ jsonInfo.count }}</h1>
       <h1>{{ jsonInfo }}</h1>
     </div>
@@ -24,6 +24,7 @@ const axios_instance = axios.create({
 });
 
 export default {
+  name: "SberButton",
   data() {
     return {
       projID: '',

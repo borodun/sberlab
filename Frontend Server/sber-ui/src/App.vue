@@ -4,16 +4,16 @@
       <h1>Pick a color<input type="color" v-model="color"/></h1>
     </div>
     <h1>Get ECS list</h1>
-    <SberButton/>
+    <List/>
   </div>
 </template>
 
 <script>
-import SberButton from './components/SberButton.vue'
+import List from './components/List.vue'
 
 export default {
   components: {
-    SberButton
+    List
   },
   data() {
     return {color: '#666666'}
