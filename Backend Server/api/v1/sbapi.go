@@ -33,6 +33,14 @@ func NewSbAPI() *SbAPI {
 
 // Register registers REST resources in container.
 func (api *SbAPI) Register(wsContainer *restful.Container, insecure bool) error {
+	cors := restful.CrossOriginResourceSharing{
+		AllowedHeaders: []string{"Content-Type", "Accept", "Access-Control-Allow-Headers"},
+		AllowedMethods: []string{"PUT", "POST", "GET", "DELETE"},
+		AllowedDomains: []string{"*"},
+		CookiesAllowed: false,
+		Container:      wsContainer}
+	wsContainer.Filter(cors.Filter)
+	wsContainer.Filter(wsContainer.OPTIONSFilter)
 
 	wsContainer.Filter(measureFilter)
 	wsContainer.Filter(logFilter)
@@ -45,9 +53,7 @@ func (api *SbAPI) Register(wsContainer *restful.Container, insecure bool) error 
 }
 
 func enableCORS(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
-	if origin := req.Request.Header.Get("Origin"); origin != "" {
-		resp.AddHeader("Access-Control-Allow-Origin", origin)
-	}
+	resp.AddHeader(restful.HEADER_AccessControlAllowOrigin, "*")
 	chain.ProcessFilter(req, resp)
 }
 
@@ -68,6 +74,8 @@ func authFilter(req *restful.Request, resp *restful.Response, chain *restful.Fil
 // logFilter logs requests.
 func logFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	logger.Infof("HTTP %s %s\n", req.Request.Method, req.Request.URL)
+	logger.Infof("HTTP Header %s\n", req.Request.Header)
+	logger.Infof("HTTP Body %s\n", req.Request.Body)
 
 	chain.ProcessFilter(req, resp)
 }

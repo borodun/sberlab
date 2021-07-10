@@ -1,72 +1,32 @@
 <template>
-  <div id="app" v-bind:style="{ backgroundColor: color}">
-    <div class="color">
-      <h1>Pick a color<input type="color" v-model="color"/></h1>
-    </div>
-    <h1>Get ECS list</h1>
-    <List/>
+  <div id="app">
+    <Carcass/>
   </div>
 </template>
 
 <script>
-import List from './components/List.vue'
+import Carcass from "@/components/Carcass";
 
 export default {
   components: {
-    List
+    Carcass
   },
-  data() {
-    return {color: '#666666'}
-  }
 }
 </script>
 
 <style>
-
-/**, *::before, *::after {
-  box-sizing: border-box;
-}*/
-
-@import url('https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono');
-
-html, body {
+body,html {
   height: 100%;
   margin: 0;
-  padding: 0;
+  padding: 0px;
+  min-height: 100vh;
+  width: 100%;
 }
 
 #app {
   display: flex;
   height: 100%;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
+  width: 100%;
+  position: center;
 }
-
-input {
-  padding: 1rem 1rem;
-  font-size: 1rem;
-  border: 0;
-  border-radius: 90px;
-  background: #fff;
-}
-
-
-h1 {
-  font-family: 'Proza Libre', sans-serif;
-  color: #ffffff;
-  font-weight: 300;
-}
-
-input[type="color"] {
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  outline: none;
-  border-radius: 100%;
-  margin: 50px;
-  padding: 0px !important;
-}
-
-
 </style>

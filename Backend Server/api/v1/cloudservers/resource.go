@@ -3,28 +3,24 @@ package cloudservers
 import (
 	"backend/api/requester"
 	"fmt"
-	"net/http"
-
 	"github.com/emicklei/go-restful"
+	"github.com/gorilla/schema"
 	"github.com/juju/loggo"
+	"net/http"
+	"sync"
 )
 
 // logger for API server.
 var logger = loggo.GetLogger("cloudservers")
+var decoder *schema.Decoder
 
 const (
-	// pathParamProjectID is a project ID
 	pathParamProjectID = "project-id"
-
-	queryAccessKey = "aKey"
-	querySecretKey = "sKey"
-
-	// queryParamOffset Specifies a page number
-	queryParamOffset = "offset"
-	// queryParamLimit Specifies the maximum number of ECSs on one page
-	queryParamLimit = "limit"
-	// queryParamStatus Specifies the ECS status
-	queryParamStatus = "status"
+	paramAccessKey     = "aKey"
+	paramSecretKey     = "sKey"
+	queryParamOffset   = "offset"
+	queryParamLimit    = "limit"
+	queryParamStatus   = "status"
 )
 
 type Ecs struct {
@@ -33,8 +29,15 @@ type Ecs struct {
 	MemoryGib int    `json:"memoryGib"`
 }
 
+type Keys struct {
+	AKey string `json:"aKey" description:"Access Key"`
+	SKey string `json:"sKey" description:"Secret Key"`
+}
+
 // Resource is a resource for config.
 type Resource struct {
+	servers  sync.Map
+	authKeys *Keys
 }
 
 // NewResource creates new instance.
@@ -43,54 +46,47 @@ func NewResource() *Resource {
 	return &Resource{}
 }
 
-// Register registers resource in restful container.
 func (c *Resource) Register(container *restful.Container) *Resource {
 	ws := new(restful.WebService)
+	ws.Consumes(restful.MIME_JSON)
+	ws.Produces(restful.MIME_JSON)
 
-	const mediaTypeApplicationJson = "application/json"
+	ws.Path("/ecs").Doc("Sb API version 1")
 
-	ws.Path("/v1").
-		Doc("Sb API version 1").
-		Consumes(restful.MIME_JSON, mediaTypeApplicationJson).
-		Produces(restful.MIME_JSON, mediaTypeApplicationJson)
-
-	ws.Route(ws.GET("").To(c.GetV1).
+	ws.Route(ws.GET("/").To(c.GetECS).
 		Doc("Returns v1 ECS endpoint").
-		Operation("getV1"))
+		Operation("GetECS"))
 
-	ws.Route(ws.GET(fmt.Sprintf("{%s}/cloudservers/detail", pathParamProjectID)).To(c.GetEcss).
+	ws.Route(ws.GET(fmt.Sprintf("/{%s}/cloudservers/detail", pathParamProjectID)).To(c.GetECSList).
 		Param(ws.PathParameter(pathParamProjectID, "project ID").DataType("string")).
 		Param(ws.QueryParameter(queryParamOffset, "Specifies a page number").DataType("integer")).
 		Param(ws.QueryParameter(queryParamLimit, "Specifies the maximum number of ECSs on one page.").DataType("integer")).
 		Param(ws.QueryParameter(queryParamStatus, "Specifies the ECS status.").DataType("string")).
-		Param(ws.QueryParameter(queryAccessKey, "Specifies the access key.").DataType("string")).
-		Param(ws.QueryParameter(querySecretKey, "Specifies the secret key.").DataType("string")).
 		Doc("Returns ECSs list").
-		Operation("getEcss"))
+		Operation("GetECSList"))
 
-	ws.Route(ws.POST(fmt.Sprintf("{%s}/cloudservers", pathParamProjectID)).To(c.CreateEcs).
-		Param(ws.PathParameter(pathParamProjectID, "project ID").DataType("string")).
-		Doc("Creates ECS").
-		Operation("createEcs").
-		Reads(Ecs{}))
+	ws.Route(ws.POST(fmt.Sprintf("/keys")).To(c.PostKeys).
+		//Param(ws.QueryParameter(paramAccessKey,"Access key").DataType("string")).
+		//Param(ws.QueryParameter(paramSecretKey,"Secret key").DataType("string")).
+		Param(ws.BodyParameter("Keys", "Keys for auth").DataType("Keys")).
+		Doc("Saves access and secret authKeys").
+		Operation("PostKeys"))
 
 	container.Add(ws)
 
 	return c
 }
 
-// GetV1 returns V1 endpoints
-func (c *Resource) GetV1(request *restful.Request, response *restful.Response) {
-	logger.Infof("GetV1")
+func (c *Resource) GetECS(request *restful.Request, response *restful.Response) {
+	logger.Infof("GetECS")
 
-	endpoint := "use 'v1/{project-id}/cloudservers'"
+	endpoint := "use 'ecs/{project-id}/cloudservers'"
 
 	response.WriteHeaderAndEntity(http.StatusOK, endpoint)
 }
 
-// GetEcss returns ECSs list
-func (c *Resource) GetEcss(request *restful.Request, response *restful.Response) {
-	logger.Infof("GetEcss")
+func (c *Resource) GetECSList(request *restful.Request, response *restful.Response) {
+	logger.Infof("GetECSList")
 
 	projectID := request.PathParameter(pathParamProjectID)
 	logger.Infof("path paramerter 'Project ID': %s", projectID)
@@ -104,37 +100,23 @@ func (c *Resource) GetEcss(request *restful.Request, response *restful.Response)
 	status := request.QueryParameter(queryParamStatus)
 	logger.Infof("query paramerter 'status': %s", status)
 
-	accessKey := request.QueryParameter(queryAccessKey)
-	logger.Infof("query paramerter 'aKey': %s", accessKey)
-
-	secretKey := request.QueryParameter(querySecretKey)
-	logger.Infof("query paramerter 'sKey': %s", secretKey)
-
 	var reqUrl = fmt.Sprintf("https://ecs.ru-moscow-1.hc.sbercloud.ru/v1/%s/cloudservers/detail?offset=%s&limit=%s", projectID, offset, limit)
-	logger.Infof("proj ID: %s, offset: %s, limit: %s, accessKey: %s, secretKey: %s", projectID, offset, limit, accessKey, secretKey)
+	logger.Infof("proj ID: %s, offset: %s, limit: %s, accessKey: %s, secretKey: %s", projectID, offset, limit, c.authKeys.AKey, c.authKeys.SKey)
 
-	ecssList := requester.MakeRequest(reqUrl, accessKey, secretKey)
+	ecssList := requester.MakeRequest(reqUrl, c.authKeys.AKey, c.authKeys.SKey)
 
 	response.WriteHeaderAndEntity(http.StatusOK, ecssList)
 }
 
-// CreateEcss creates new ECS
-func (c *Resource) CreateEcs(request *restful.Request, response *restful.Response) {
-	logger.Infof("CreateEcss")
-
-	ecs := &Ecs{}
-	err := request.ReadEntity(ecs)
-	if err != nil {
-		logger.Errorf("cannot read body %v", err)
-		response.WriteHeaderAndEntity(http.StatusBadRequest, "Cannot read requester body")
+func (c *Resource) PostKeys(req *restful.Request, resp *restful.Response) {
+	logger.Infof("Saving authKeys")
+	authKeys := new(Keys)
+	err := req.ReadEntity(authKeys)
+	if err != nil { // bad request
+		resp.WriteErrorString(http.StatusBadRequest, err.Error())
 		return
 	}
-
-	projectID := request.PathParameter(pathParamProjectID)
-	logger.Infof("path paramerter 'Project ID': %s", projectID)
-	logger.Infof("Creating ECS: %v '%s'", ecs, ecs.Name)
-
-	ecsCreated := "ECS created"
-
-	response.WriteHeaderAndEntity(http.StatusOK, ecsCreated)
+	c.authKeys = authKeys
+	logger.Infof("Saved authKeys: access key: %s, secret key: %s", authKeys.AKey, authKeys.SKey)
+	resp.WriteHeaderAndEntity(http.StatusOK, "Keys successfully saved")
 }
