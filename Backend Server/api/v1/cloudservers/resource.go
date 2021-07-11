@@ -2,22 +2,20 @@ package cloudservers
 
 import (
 	"backend/api/requester"
+	"backend/api/v1/vpcs"
+	"encoding/json"
 	"fmt"
 	"github.com/emicklei/go-restful"
 	"github.com/gorilla/schema"
 	"github.com/juju/loggo"
 	"net/http"
-	"sync"
 )
 
-// logger for API server.
 var logger = loggo.GetLogger("cloudservers")
 var decoder *schema.Decoder
 
 const (
 	pathParamProjectID = "project-id"
-	paramAccessKey     = "aKey"
-	paramSecretKey     = "sKey"
 	queryParamOffset   = "offset"
 	queryParamLimit    = "limit"
 	queryParamStatus   = "status"
@@ -34,13 +32,37 @@ type Keys struct {
 	SKey string `json:"sKey" description:"Secret Key"`
 }
 
-// Resource is a resource for config.
+type Server struct {
+	Name   string `json:"name"`
+	ID     string `json:"id"`
+	Status string `json:"status"`
+}
+
+type ErrorMsg struct {
+	Error ErrorWithID `json:"error"`
+}
+
+type ErrorWithID struct {
+	Message string `json:"message"`
+}
+
+type Servers struct {
+	ErrorMessage string      `json:"error_msg"`
+	Error        ErrorWithID `json:"error"`
+	Count        int         `json:"count"`
+	ServerList   []Server    `json:"servers"`
+}
+
+type Info struct {
+	Servers Servers   `json:"ecs"`
+	VPCs    vpcs.VPCs `json:"vpcs"`
+}
+
 type Resource struct {
-	servers  sync.Map
+	servers  Servers
 	authKeys *Keys
 }
 
-// NewResource creates new instance.
 func NewResource() *Resource {
 	logger.SetLogLevel(loggo.INFO)
 	return &Resource{}
@@ -51,13 +73,13 @@ func (c *Resource) Register(container *restful.Container) *Resource {
 	ws.Consumes(restful.MIME_JSON)
 	ws.Produces(restful.MIME_JSON)
 
-	ws.Path("/ecs").Doc("Sb API version 1")
+	ws.Path("/info").Doc("Sb API version 1")
 
 	ws.Route(ws.GET("/").To(c.GetECS).
 		Doc("Returns v1 ECS endpoint").
 		Operation("GetECS"))
 
-	ws.Route(ws.GET(fmt.Sprintf("/{%s}/cloudservers/detail", pathParamProjectID)).To(c.GetECSList).
+	ws.Route(ws.GET(fmt.Sprintf("/{%s}/getinfo", pathParamProjectID)).To(c.GetECSList).
 		Param(ws.PathParameter(pathParamProjectID, "project ID").DataType("string")).
 		Param(ws.QueryParameter(queryParamOffset, "Specifies a page number").DataType("integer")).
 		Param(ws.QueryParameter(queryParamLimit, "Specifies the maximum number of ECSs on one page.").DataType("integer")).
@@ -66,8 +88,6 @@ func (c *Resource) Register(container *restful.Container) *Resource {
 		Operation("GetECSList"))
 
 	ws.Route(ws.POST(fmt.Sprintf("/keys")).To(c.PostKeys).
-		//Param(ws.QueryParameter(paramAccessKey,"Access key").DataType("string")).
-		//Param(ws.QueryParameter(paramSecretKey,"Secret key").DataType("string")).
 		Param(ws.BodyParameter("Keys", "Keys for auth").DataType("Keys")).
 		Doc("Saves access and secret authKeys").
 		Operation("PostKeys"))
@@ -89,23 +109,31 @@ func (c *Resource) GetECSList(request *restful.Request, response *restful.Respon
 	logger.Infof("GetECSList")
 
 	projectID := request.PathParameter(pathParamProjectID)
-	logger.Infof("path paramerter 'Project ID': %s", projectID)
-
 	offset := request.QueryParameter(queryParamOffset)
-	logger.Infof("query paramerter 'offset': %s", offset)
-
 	limit := request.QueryParameter(queryParamLimit)
-	logger.Infof("query paramerter 'limit': %s", limit)
 
-	status := request.QueryParameter(queryParamStatus)
-	logger.Infof("query paramerter 'status': %s", status)
-
+	if c.authKeys == nil {
+		error := new(ErrorMsg)
+		error.Error.Message = "Server has no saved keys"
+		response.WriteEntity(error)
+		return
+	}
 	var reqUrl = fmt.Sprintf("https://ecs.ru-moscow-1.hc.sbercloud.ru/v1/%s/cloudservers/detail?offset=%s&limit=%s", projectID, offset, limit)
 	logger.Infof("proj ID: %s, offset: %s, limit: %s, accessKey: %s, secretKey: %s", projectID, offset, limit, c.authKeys.AKey, c.authKeys.SKey)
 
 	ecssList := requester.MakeRequest(reqUrl, c.authKeys.AKey, c.authKeys.SKey)
+	logger.Infof("Response from sber: " + ecssList)
+	var servers Servers
+	json.Unmarshal([]byte(ecssList), &servers)
+	respString, _ := json.Marshal(servers)
+	logger.Infof("Response to front: " + string(respString))
+	vpcs := vpcs.GetVPCs(limit, projectID, c.authKeys.AKey, c.authKeys.SKey)
+	var info Info
 
-	response.WriteHeaderAndEntity(http.StatusOK, ecssList)
+	info.Servers = servers
+	info.VPCs = vpcs
+
+	response.WriteEntity(info)
 }
 
 func (c *Resource) PostKeys(req *restful.Request, resp *restful.Response) {

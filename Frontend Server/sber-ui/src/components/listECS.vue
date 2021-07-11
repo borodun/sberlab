@@ -2,7 +2,7 @@
   <div id="all">
     <el-row>
       <el-col :span="24">
-        <div class="grid-content bg-purple-dark"><h1 id="ecsList">Get ECS list</h1></div>
+        <div class="grid-content bg-purple-dark"><h1 id="ecsList">Brief info about project</h1></div>
       </el-col>
     </el-row>
     <Auth v-on:success="ShowSuccess($event)"></Auth>
@@ -20,34 +20,68 @@
         <el-button type="primary" v-on:click="showInfo">Query</el-button>
       </el-form-item>
     </el-form>
+    <Table v-bind:content="info.ecs.servers"></Table>
+    <Table v-bind:content="info.vpcs.vpcs"></Table>
+    <el-collapse accordion>
+      <el-collapse-item title="Raw Data" name="1">
+        <div><span style="white-space: pre-wrap;">{{ this.info }}</span></div>
+      </el-collapse-item>
+    </el-collapse>
   </div>
 </template>
 
 <script>
-//import TodoListItem from './TodoListItem.vue'
 import axios from "axios"
 import Auth from "@/components/auth";
+import Table from "@/components/Table";
 
 const axios_instance = axios.create({
   baseURL: process.env.VUE_APP_BACKEND_IP,
-  //baseURL: process.env.BACKEND,
-  // baseURL: 'http://localhost:9999/v1',
-  // baseURL: 'http://37.230.196.108/v1/'
 });
 
 export default {
-  name: "ListECS",
-  components: {Auth},
+  name: "Info",
+  components: {
+    Auth,
+    Table
+  },
   data() {
     return {
       form: {
         projID: '',
         offset: 0,
         limit: 0,
-        info: '',
-        jsonInfo: {},
       },
-      servers: [],
+      info: {
+        ecs: {
+          error_msg: "",
+          error: {
+            message: ""
+          },
+          count: 4,
+          servers: [
+            {
+              name: "",
+              id: "",
+              status: ""
+            }
+          ]
+        },
+        vpcs: {
+          error_msg: "",
+          error: {
+            message: ""
+          },
+          count: 0,
+          vpcs: [
+            {
+              name: "",
+              id: "",
+              status: ""
+            }
+          ]
+        }
+      },
     }
   },
   methods: {
@@ -69,22 +103,22 @@ export default {
     },
     showInfo() {
       console.log(this.form)
-      axios_instance.get(this.form.projID + "/cloudservers/detail?",
+      axios_instance.get(this.form.projID + "/getinfo?",
           {
             params: {
               offset: this.form.offset,
               limit: this.form.limit,
-              aKey: this.form.accessKey,
-              sKey: this.form.secretKey,
             }
           }).then(result => {
-        this.form.info = result.data
-        let jsonInfo = JSON.parse(result.data)
-        this.form.jsonInfo = jsonInfo
-        if (jsonInfo.error_msg) {
-          this.ShowError(jsonInfo.error_msg)
-        } else if (jsonInfo.error) {
-          this.ShowError(jsonInfo.error.message)
+        this.info = result.data
+        if (this.info.error_msg.length !== 0) {
+          this.ShowError(this.info.error_msg)
+          this.info = {}
+        } else if (this.info.error.message.length !== 0) {
+          if (this.info.error.message) {
+            this.ShowError(this.info.error.message)
+          }
+          this.info = {}
         }
         console.log(result)
       }, error => {

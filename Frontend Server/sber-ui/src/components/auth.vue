@@ -17,9 +17,6 @@ import axios from "axios"
 
 const axios_instance = axios.create({
   baseURL: process.env.VUE_APP_BACKEND_IP,
-  //baseURL: process.env.BACKEND,
-  // baseURL: 'http://localhost:9999/v1',
-  // baseURL: 'http://37.230.196.108/v1/'
 });
 
 export default {
