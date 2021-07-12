@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="form" :model="keys" label-width="120px">
+  <el-form ref="form" :model="projectID" label-width="120px">
     <el-form-item label="Project ID">
       <el-input v-model="projectID"></el-input>
     </el-form-item>
