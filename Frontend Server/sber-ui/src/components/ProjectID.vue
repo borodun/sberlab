@@ -1,10 +1,7 @@
 <template>
   <el-form ref="form" :model="keys" label-width="120px">
-    <el-form-item label="Access Key">
-      <el-input v-model="keys.accessKey"></el-input>
-    </el-form-item>
-    <el-form-item label="Secret Key">
-      <el-input v-model="keys.secretKey" show-password></el-input>
+    <el-form-item label="Project ID">
+      <el-input v-model="projectID"></el-input>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" v-on:click="saveKeys">Save</el-button>
@@ -20,22 +17,18 @@ const axios_instance = axios.create({
 });
 
 export default {
-  name: "auth",
+  name: "ProjectID",
   data() {
     return {
-      keys: {
-        accessKey: '123',
-        secretKey: '123',
-      }
+      projectID: "",
     }
   },
   methods: {
     saveKeys() {
       axios_instance.post(
-          "/keys",
+          "/projid",
           {
-            aKey: this.keys.accessKey,
-            sKey: this.keys.secretKey,
+            projectID: this.projectID
           }).then(function (response) {
         console.log(response.data)
         this.$emit('success', response.data)

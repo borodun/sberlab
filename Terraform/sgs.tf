@@ -20,7 +20,19 @@ locals {
       description = "Allow HTTP for load balancer",
       protocol = "tcp",
       port = 80,
-      source = sbercloud_vpc_eip.elb_eip.address
+      source = "0.0.0.0/0"
+    },
+    lb-kube-api-rule = {
+      description = "Allow kube-api",
+      protocol = "tcp",
+      port = 6443,
+      source = "0.0.0.0/0"
+    },
+    lb-kublr-rule = {
+      description = "Allow kublr agent",
+      protocol = "tcp",
+      port = 11251,
+      source = "0.0.0.0/0"
     },
     https-rule = {
       description = "Allow HTTPS from anywhere",

@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import Info from './listECS.vue'
+import Info from './ShowClusterInfo.vue'
 
 export default {
   name: "List",

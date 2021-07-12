@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"backend/api/v1/cloudservers"
+	"backend/api/v1/info"
 	"log"
 	"net/http"
 	"os"
@@ -13,12 +13,9 @@ import (
 
 var logger = loggo.GetLogger("SbAPI")
 
-// SbAPI is a definition of Sb API.
 type SbAPI struct {
 }
 
-// NewSbAPI creates new instance of Sb API.
-// It is required to call Register before start to use it.
 func NewSbAPI() *SbAPI {
 	logger.SetLogLevel(loggo.INFO)
 
@@ -31,7 +28,6 @@ func NewSbAPI() *SbAPI {
 	return api
 }
 
-// Register registers REST resources in container.
 func (api *SbAPI) Register(wsContainer *restful.Container, insecure bool) error {
 	cors := restful.CrossOriginResourceSharing{
 		AllowedHeaders: []string{"Content-Type", "Accept", "Access-Control-Allow-Headers"},
@@ -47,7 +43,7 @@ func (api *SbAPI) Register(wsContainer *restful.Container, insecure bool) error 
 	//wsContainer.Filter(authFilter)
 	wsContainer.Filter(enableCORS)
 
-	cloudservers.NewResource().Register(wsContainer)
+	info.NewResource().Register(wsContainer)
 
 	return nil
 }
@@ -57,7 +53,6 @@ func enableCORS(req *restful.Request, resp *restful.Response, chain *restful.Fil
 	chain.ProcessFilter(req, resp)
 }
 
-// authFilter check user:password
 func authFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	logger.Infof("HTTP headers %v\n", req.Request.Header)
 	auth := req.Request.Header.Get("Auth")
@@ -71,7 +66,6 @@ func authFilter(req *restful.Request, resp *restful.Response, chain *restful.Fil
 	chain.ProcessFilter(req, resp)
 }
 
-// logFilter logs requests.
 func logFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	logger.Infof("HTTP %s %s\n", req.Request.Method, req.Request.URL)
 	logger.Infof("HTTP Header %s\n", req.Request.Header)
@@ -80,11 +74,8 @@ func logFilter(req *restful.Request, resp *restful.Response, chain *restful.Filt
 	chain.ProcessFilter(req, resp)
 }
 
-// measureFilter measure requester process time.
 func measureFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	start := time.Now()
-
 	chain.ProcessFilter(req, resp)
-
 	logger.Infof("requester  %s %s completed for %v\n", req.Request.Method, req.Request.URL, time.Since(start))
 }

@@ -1,9 +1,10 @@
-package cloudservers
+package info
 
 import (
-	"backend/api/requester"
+	"backend/api/v1/auth"
+	"backend/api/v1/ecss"
+	"backend/api/v1/messages"
 	"backend/api/v1/vpcs"
-	"encoding/json"
 	"fmt"
 	"github.com/emicklei/go-restful"
 	"github.com/gorilla/schema"
@@ -11,7 +12,7 @@ import (
 	"net/http"
 )
 
-var logger = loggo.GetLogger("cloudservers")
+var logger = loggo.GetLogger("ecss")
 var decoder *schema.Decoder
 
 const (
@@ -21,46 +22,7 @@ const (
 	queryParamStatus   = "status"
 )
 
-type Ecs struct {
-	Name      string `json:"name"`
-	CpuCount  int    `json:"cpuCount"`
-	MemoryGib int    `json:"memoryGib"`
-}
-
-type Keys struct {
-	AKey string `json:"aKey" description:"Access Key"`
-	SKey string `json:"sKey" description:"Secret Key"`
-}
-
-type Server struct {
-	Name   string `json:"name"`
-	ID     string `json:"id"`
-	Status string `json:"status"`
-}
-
-type ErrorMsg struct {
-	Error ErrorWithID `json:"error"`
-}
-
-type ErrorWithID struct {
-	Message string `json:"message"`
-}
-
-type Servers struct {
-	ErrorMessage string      `json:"error_msg"`
-	Error        ErrorWithID `json:"error"`
-	Count        int         `json:"count"`
-	ServerList   []Server    `json:"servers"`
-}
-
-type Info struct {
-	Servers Servers   `json:"ecs"`
-	VPCs    vpcs.VPCs `json:"vpcs"`
-}
-
 type Resource struct {
-	servers  Servers
-	authKeys *Keys
 }
 
 func NewResource() *Resource {
@@ -79,8 +41,7 @@ func (c *Resource) Register(container *restful.Container) *Resource {
 		Doc("Returns v1 ECS endpoint").
 		Operation("GetECS"))
 
-	ws.Route(ws.GET(fmt.Sprintf("/{%s}/getinfo", pathParamProjectID)).To(c.GetECSList).
-		Param(ws.PathParameter(pathParamProjectID, "project ID").DataType("string")).
+	ws.Route(ws.GET(fmt.Sprintf("/getinfo")).To(c.GetECSList).
 		Param(ws.QueryParameter(queryParamOffset, "Specifies a page number").DataType("integer")).
 		Param(ws.QueryParameter(queryParamLimit, "Specifies the maximum number of ECSs on one page.").DataType("integer")).
 		Param(ws.QueryParameter(queryParamStatus, "Specifies the ECS status.").DataType("string")).
@@ -92,6 +53,11 @@ func (c *Resource) Register(container *restful.Container) *Resource {
 		Doc("Saves access and secret authKeys").
 		Operation("PostKeys"))
 
+	ws.Route(ws.POST(fmt.Sprintf("/projid")).To(c.PostProjID).
+		Param(ws.BodyParameter("ProjID", "Project id in cloud").DataType("ProjID")).
+		Doc("Saves project id").
+		Operation("PostProjID"))
+
 	container.Add(ws)
 
 	return c
@@ -100,37 +66,27 @@ func (c *Resource) Register(container *restful.Container) *Resource {
 func (c *Resource) GetECS(request *restful.Request, response *restful.Response) {
 	logger.Infof("GetECS")
 
-	endpoint := "use 'ecs/{project-id}/cloudservers'"
+	endpoint := "use 'ecss/{project-id}/ecss'"
 
 	response.WriteHeaderAndEntity(http.StatusOK, endpoint)
 }
 
 func (c *Resource) GetECSList(request *restful.Request, response *restful.Response) {
 	logger.Infof("GetECSList")
-
-	projectID := request.PathParameter(pathParamProjectID)
 	offset := request.QueryParameter(queryParamOffset)
 	limit := request.QueryParameter(queryParamLimit)
 
-	if c.authKeys == nil {
-		error := new(ErrorMsg)
+	if auth.Info.AuthKeys == nil {
+		error := new(messages.ErrorMsg)
 		error.Error.Message = "Server has no saved keys"
 		response.WriteEntity(error)
 		return
 	}
-	var reqUrl = fmt.Sprintf("https://ecs.ru-moscow-1.hc.sbercloud.ru/v1/%s/cloudservers/detail?offset=%s&limit=%s", projectID, offset, limit)
-	logger.Infof("proj ID: %s, offset: %s, limit: %s, accessKey: %s, secretKey: %s", projectID, offset, limit, c.authKeys.AKey, c.authKeys.SKey)
 
-	ecssList := requester.MakeRequest(reqUrl, c.authKeys.AKey, c.authKeys.SKey)
-	logger.Infof("Response from sber: " + ecssList)
-	var servers Servers
-	json.Unmarshal([]byte(ecssList), &servers)
-	respString, _ := json.Marshal(servers)
-	logger.Infof("Response to front: " + string(respString))
-	vpcs := vpcs.GetVPCs(limit, projectID, c.authKeys.AKey, c.authKeys.SKey)
+	ecss := ecss.GetECSs(limit, offset)
+	vpcs := vpcs.GetVPCs(limit)
 	var info Info
-
-	info.Servers = servers
+	info.Servers = ecss
 	info.VPCs = vpcs
 
 	response.WriteEntity(info)
@@ -138,13 +94,26 @@ func (c *Resource) GetECSList(request *restful.Request, response *restful.Respon
 
 func (c *Resource) PostKeys(req *restful.Request, resp *restful.Response) {
 	logger.Infof("Saving authKeys")
-	authKeys := new(Keys)
+	authKeys := new(auth.Keys)
 	err := req.ReadEntity(authKeys)
 	if err != nil { // bad request
 		resp.WriteErrorString(http.StatusBadRequest, err.Error())
 		return
 	}
-	c.authKeys = authKeys
+	auth.Info.AuthKeys = authKeys
 	logger.Infof("Saved authKeys: access key: %s, secret key: %s", authKeys.AKey, authKeys.SKey)
 	resp.WriteHeaderAndEntity(http.StatusOK, "Keys successfully saved")
+}
+
+func (c *Resource) PostProjID(req *restful.Request, resp *restful.Response) {
+	logger.Infof("Saving project id")
+	projID := new(auth.ProjID)
+	err := req.ReadEntity(projID)
+	if err != nil { // bad request
+		resp.WriteErrorString(http.StatusBadRequest, err.Error())
+		return
+	}
+	auth.Info.ProjectID = projID.ProjectID
+	logger.Infof("Saved project id: %s", projID.ProjectID)
+	resp.WriteHeaderAndEntity(http.StatusOK, "Project id successfully saved")
 }

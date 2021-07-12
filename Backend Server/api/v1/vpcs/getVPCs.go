@@ -2,6 +2,8 @@ package vpcs
 
 import (
 	"backend/api/requester"
+	"backend/api/v1/auth"
+	"backend/api/v1/messages"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/schema"
@@ -11,14 +13,6 @@ import (
 var logger = loggo.GetLogger("vpcs")
 var decoder *schema.Decoder
 
-type ErrorMsg struct {
-	Error ErrorWithID `json:"error"`
-}
-
-type ErrorWithID struct {
-	Message string `json:"message"`
-}
-
 type VPC struct {
 	Name   string `json:"name"`
 	ID     string `json:"id"`
@@ -26,16 +20,16 @@ type VPC struct {
 }
 
 type VPCs struct {
-	ErrorMessage string      `json:"error_msg"`
-	Error        ErrorWithID `json:"error"`
-	Count        int         `json:"count"`
-	ServerList   []VPC       `json:"vpcs"`
+	ErrorMessage string               `json:"error_msg"`
+	Error        messages.ErrorWithID `json:"error"`
+	Count        int                  `json:"count"`
+	ServerList   []VPC                `json:"vpcs"`
 }
 
-func GetVPCs(limit string, prijectID string, aKey string, sKey string) VPCs {
-	var reqUrl = fmt.Sprintf("https://vpc.ru-moscow-1.hc.sbercloud.ru/v1/%s/vpcs?limit=%s", prijectID, limit)
+func GetVPCs(limit string) VPCs {
+	var reqUrl = fmt.Sprintf("https://vpc.ru-moscow-1.hc.sbercloud.ru/v1/%s/vpcs?limit=%s", auth.Info.ProjectID, limit)
 
-	vpcsList := requester.MakeRequest(reqUrl, aKey, sKey)
+	vpcsList := requester.MakeRequest(reqUrl, auth.Info.AuthKeys.AKey, auth.Info.AuthKeys.SKey)
 	logger.Infof("Response from sber: " + vpcsList)
 	var vpcs VPCs
 	json.Unmarshal([]byte(vpcsList), &vpcs)

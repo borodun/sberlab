@@ -6,10 +6,8 @@
       </el-col>
     </el-row>
     <Auth v-on:success="ShowSuccess($event)"></Auth>
+    <ProjectID v-on:success="ShowSuccess($event)"></ProjectID>
     <el-form ref="form" :model="form" label-width="120px">
-      <el-form-item label="Project ID">
-        <el-input v-model="form.projID"></el-input>
-      </el-form-item>
       <el-form-item label="Offset">
         <el-input-number v-model="form.offset" :min="1"></el-input-number>
       </el-form-item>
@@ -33,6 +31,7 @@
 <script>
 import axios from "axios"
 import Auth from "@/components/auth";
+import ProjectID from "@/components/ProjectID";
 import Table from "@/components/Table";
 
 const axios_instance = axios.create({
@@ -43,7 +42,8 @@ export default {
   name: "Info",
   components: {
     Auth,
-    Table
+    Table,
+    ProjectID
   },
   data() {
     return {
