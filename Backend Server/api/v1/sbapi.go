@@ -3,7 +3,6 @@ package v1
 import (
 	"backend/api/v1/info"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -38,10 +37,10 @@ func (api *SbAPI) Register(wsContainer *restful.Container, insecure bool) error 
 	wsContainer.Filter(cors.Filter)
 	wsContainer.Filter(wsContainer.OPTIONSFilter)
 
+	wsContainer.Filter(enableCORS)
 	wsContainer.Filter(measureFilter)
 	wsContainer.Filter(logFilter)
 	//wsContainer.Filter(authFilter)
-	wsContainer.Filter(enableCORS)
 
 	info.NewResource().Register(wsContainer)
 
@@ -50,26 +49,19 @@ func (api *SbAPI) Register(wsContainer *restful.Container, insecure bool) error 
 
 func enableCORS(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	resp.AddHeader(restful.HEADER_AccessControlAllowOrigin, "*")
+
 	chain.ProcessFilter(req, resp)
 }
 
 func authFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
-	logger.Infof("HTTP headers %v\n", req.Request.Header)
-	auth := req.Request.Header.Get("Auth")
-	logger.Infof("auth: %s\n", auth)
-
-	if auth != "sberlabnsu:2021" {
-		resp.WriteHeaderAndEntity(http.StatusUnauthorized, "Authorization failed")
-		return
-	}
 
 	chain.ProcessFilter(req, resp)
 }
 
 func logFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	logger.Infof("HTTP %s %s\n", req.Request.Method, req.Request.URL)
-	logger.Infof("HTTP Header %s\n", req.Request.Header)
-	logger.Infof("HTTP Body %s\n", req.Request.Body)
+	logger.Infof("HTTP Req Header %s\n", req.Request.Header)
+	logger.Infof("HTTP Req Body %s\n", req.Request.Body)
 
 	chain.ProcessFilter(req, resp)
 }

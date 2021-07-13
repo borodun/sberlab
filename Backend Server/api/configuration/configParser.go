@@ -6,7 +6,6 @@ import (
 )
 
 type Config struct {
-	ProjectID string
 	AccessKey string
 	SecretKey string
 }
@@ -27,10 +26,6 @@ func LoadConfig(configPath string) (Config, bool) {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
 
-	if len(con.ProjectID) == 0 {
-		log.Printf("Config does not have ProjectID field")
-		return Config{}, true
-	}
 	if len(con.AccessKey) == 0 {
 		log.Printf("Config does not have AccessKey field")
 		return Config{}, true

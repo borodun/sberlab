@@ -1,8 +1,9 @@
 package auth
 
 type Keys struct {
-	AKey string `json:"aKey"`
-	SKey string `json:"sKey"`
+	AKey       string `json:"aKey"`
+	SKey       string `json:"sKey"`
+	DomainName string `json:"domain"`
 }
 
 type ProjID struct {
@@ -10,8 +11,8 @@ type ProjID struct {
 }
 
 type Auth struct {
-	AuthKeys  *Keys
+	Signer    *Keys
 	ProjectID string
 }
 
-var Info Auth
+var InfoAuth Auth

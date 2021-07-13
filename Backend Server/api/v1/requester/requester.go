@@ -1,6 +1,8 @@
 package requester
 
 import (
+	"backend/api/configuration"
+	"backend/api/v1/auth"
 	"bytes"
 	"fmt"
 	"github.com/borodun/SberLab/core"
@@ -9,10 +11,21 @@ import (
 	"net/http"
 )
 
-func MakeRequest(reqUrl string, accessKey string, secretKey string) string {
+var Token string
+
+func MakeRequest(reqUrl string) string {
+	/*signer := core.Signer{
+		Key:    auth.InfoAuth.Signer.AKey,
+		Secret: auth.InfoAuth.Signer.SKey,
+	}*/
+	config, errBool := configuration.LoadConfig("../../")
+	if errBool {
+		return "{error: 'Wrong config'}"
+	}
+
 	signer := core.Signer{
-		Key:    accessKey,
-		Secret: secretKey,
+		Key:    config.AccessKey,
+		Secret: config.SecretKey,
 	}
 
 	req, err := http.NewRequest("GET", reqUrl, ioutil.NopCloser(bytes.NewBuffer([]byte(""))))
@@ -21,6 +34,8 @@ func MakeRequest(reqUrl string, accessKey string, secretKey string) string {
 	}
 
 	req.Header.Add("content-type", "application/json")
+	req.Header.Add("X-Project-Id", auth.InfoAuth.ProjectID)
+	req.Header.Add("X-Auth-Token", Token)
 	err = signer.Sign(req)
 	if err != nil {
 		return ""

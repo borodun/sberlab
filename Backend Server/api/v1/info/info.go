@@ -3,23 +3,20 @@ package info
 import (
 	"backend/api/v1/auth"
 	"backend/api/v1/ecss"
-	"backend/api/v1/messages"
+	"backend/api/v1/iam"
 	"backend/api/v1/vpcs"
 	"fmt"
 	"github.com/emicklei/go-restful"
-	"github.com/gorilla/schema"
 	"github.com/juju/loggo"
 	"net/http"
 )
 
-var logger = loggo.GetLogger("ecss")
-var decoder *schema.Decoder
+var logger = loggo.GetLogger("info")
 
 const (
-	pathParamProjectID = "project-id"
-	queryParamOffset   = "offset"
-	queryParamLimit    = "limit"
-	queryParamStatus   = "status"
+	queryParamOffset = "offset"
+	queryParamLimit  = "limit"
+	queryParamStatus = "status"
 )
 
 type Resource struct {
@@ -37,11 +34,14 @@ func (c *Resource) Register(container *restful.Container) *Resource {
 
 	ws.Path("/info").Doc("Sb API version 1")
 
-	ws.Route(ws.GET("/").To(c.GetECS).
-		Doc("Returns v1 ECS endpoint").
-		Operation("GetECS"))
+	ws.Route(ws.GET(fmt.Sprintf("/ecs")).To(c.GetECSList).
+		Param(ws.QueryParameter(queryParamOffset, "Specifies a page number").DataType("integer")).
+		Param(ws.QueryParameter(queryParamLimit, "Specifies the maximum number of ECSs on one page.").DataType("integer")).
+		Param(ws.QueryParameter(queryParamStatus, "Specifies the ECS status.").DataType("string")).
+		Doc("Returns ECSs list").
+		Operation("GetECSList"))
 
-	ws.Route(ws.GET(fmt.Sprintf("/getinfo")).To(c.GetECSList).
+	ws.Route(ws.GET(fmt.Sprintf("/vpc")).To(c.GetVPCList).
 		Param(ws.QueryParameter(queryParamOffset, "Specifies a page number").DataType("integer")).
 		Param(ws.QueryParameter(queryParamLimit, "Specifies the maximum number of ECSs on one page.").DataType("integer")).
 		Param(ws.QueryParameter(queryParamStatus, "Specifies the ECS status.").DataType("string")).
@@ -63,57 +63,69 @@ func (c *Resource) Register(container *restful.Container) *Resource {
 	return c
 }
 
-func (c *Resource) GetECS(request *restful.Request, response *restful.Response) {
-	logger.Infof("GetECS")
-
-	endpoint := "use 'ecss/{project-id}/ecss'"
-
-	response.WriteHeaderAndEntity(http.StatusOK, endpoint)
-}
-
 func (c *Resource) GetECSList(request *restful.Request, response *restful.Response) {
-	logger.Infof("GetECSList")
 	offset := request.QueryParameter(queryParamOffset)
 	limit := request.QueryParameter(queryParamLimit)
 
-	if auth.Info.AuthKeys == nil {
-		error := new(messages.ErrorMsg)
-		error.Error.Message = "Server has no saved keys"
-		response.WriteEntity(error)
+	if auth.InfoAuth.Signer == nil {
+		type Error struct {
+			Error string `json:"error"`
+		}
+		var err Error
+		err.Error = "Server has no saved keys"
+		logger.Infof("Error: no saved keys")
+		response.WriteEntity(err)
 		return
 	}
 
-	ecss := ecss.GetECSs(limit, offset)
-	vpcs := vpcs.GetVPCs(limit)
-	var info Info
-	info.Servers = ecss
-	info.VPCs = vpcs
+	ecssT := ecss.GetECSs(limit, offset)
 
-	response.WriteEntity(info)
+	response.WriteEntity(ecssT)
+}
+
+func (c *Resource) GetVPCList(request *restful.Request, response *restful.Response) {
+	limit := request.QueryParameter(queryParamLimit)
+
+	if auth.InfoAuth.Signer == nil {
+		type Error struct {
+			Error string `json:"error"`
+		}
+		var err Error
+		err.Error = "Server has no saved keys"
+		logger.Infof("Error: no saved keys")
+		response.WriteEntity(err)
+		return
+	}
+
+	vpcsT := vpcs.GetVPCs(limit)
+	response.WriteEntity(vpcsT)
 }
 
 func (c *Resource) PostKeys(req *restful.Request, resp *restful.Response) {
-	logger.Infof("Saving authKeys")
 	authKeys := new(auth.Keys)
 	err := req.ReadEntity(authKeys)
-	if err != nil { // bad request
+	if err != nil {
 		resp.WriteErrorString(http.StatusBadRequest, err.Error())
 		return
 	}
-	auth.Info.AuthKeys = authKeys
+	auth.InfoAuth.Signer = authKeys
+
+	errStr := iam.GetToken(authKeys.AKey, authKeys.SKey, authKeys.DomainName)
+	fmt.Printf("Error with token: " + errStr)
+	projs := iam.GetProjects()
+
 	logger.Infof("Saved authKeys: access key: %s, secret key: %s", authKeys.AKey, authKeys.SKey)
-	resp.WriteHeaderAndEntity(http.StatusOK, "Keys successfully saved")
+	resp.WriteHeaderAndEntity(http.StatusOK, projs)
 }
 
 func (c *Resource) PostProjID(req *restful.Request, resp *restful.Response) {
-	logger.Infof("Saving project id")
 	projID := new(auth.ProjID)
 	err := req.ReadEntity(projID)
-	if err != nil { // bad request
+	if err != nil {
 		resp.WriteErrorString(http.StatusBadRequest, err.Error())
 		return
 	}
-	auth.Info.ProjectID = projID.ProjectID
+	auth.InfoAuth.ProjectID = projID.ProjectID
 	logger.Infof("Saved project id: %s", projID.ProjectID)
 	resp.WriteHeaderAndEntity(http.StatusOK, "Project id successfully saved")
 }
