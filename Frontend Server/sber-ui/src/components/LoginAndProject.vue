@@ -1,13 +1,13 @@
 <template>
   <el-form ref="form" :model="keys" label-width="120px" :disabled="disabled">
     <el-form-item label="Domain Name">
-      <el-input v-model="keys.domain"></el-input>
+      <el-input v-model="keys.domain" clearable></el-input>
     </el-form-item>
     <el-form-item label="Login">
-      <el-input v-model="keys.accessKey"></el-input>
+      <el-input v-model="keys.accessKey" clearable></el-input>
     </el-form-item>
     <el-form-item label="Password">
-      <el-input v-model="keys.secretKey" show-password></el-input>
+      <el-input v-model="keys.secretKey" show-password clearable></el-input>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" v-on:click="saveKeys">Login</el-button>

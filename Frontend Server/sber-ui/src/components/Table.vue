@@ -9,6 +9,8 @@
           style="width: 100%"
           max-height="500"
           @selection-change="handleSelectionChange"
+          stripe
+          fit
           border>
         <el-table-column
             type="selection"
@@ -29,6 +31,23 @@
             prop="status"
             label="Status"
             width="120">
+        </el-table-column>
+        <el-table-column
+            label="Operations"
+            fit>
+          <template #default="scope">
+            <el-button
+                size="mini"
+                @click="showDetail(scope.$index)">Details
+            </el-button>
+            <el-popconfirm title="Are you sure to delete this?" v-on:confirm="deleteElement(scope.$index)">
+              <template #reference>
+                <el-button
+                    size="mini"
+                    type="danger">Delete</el-button>
+              </template>
+            </el-popconfirm>
+          </template>
         </el-table-column>
       </el-table>
     </el-form-item>
@@ -100,6 +119,12 @@ export default {
       for (var i = 0; i < this.multipleSelection.length; i++) {
         console.log(this.multipleSelection[i].id)
       }
+    },
+    showDetail(row) {
+      console.log(this.entity[this.elName][row].id)
+    },
+    deleteElement(row) {
+      console.log(this.entity[this.elName][row].id)
     }
   }
 }
