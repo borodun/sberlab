@@ -9,16 +9,23 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 )
 
-var Token string
+type Queries struct {
+	Limit  string
+	Offset string
+}
+
+type Token struct {
+	Token        string
+	CreationTime time.Time
+}
+
+var Tok Token
+var QueryParams Queries
 
 func MakeRequest(reqUrl string) string {
-	/*signer := core.Signer{
-		Key:    auth.InfoAuth.Signer.AKey,
-		Secret: auth.InfoAuth.Signer.SKey,
-	}*/
-
 	signer := core.Signer{
 		Key:    os.Getenv("ACCESSKEY"),
 		Secret: os.Getenv("SECRETKEY"),
@@ -31,7 +38,7 @@ func MakeRequest(reqUrl string) string {
 
 	req.Header.Add("content-type", "application/json")
 	req.Header.Add("X-Project-Id", auth.InfoAuth.ProjectID)
-	req.Header.Add("X-Auth-Token", Token)
+	req.Header.Add("X-Auth-Token", Tok.Token)
 	err = signer.Sign(req)
 	if err != nil {
 		return ""
@@ -54,6 +61,5 @@ func MakeRequest(reqUrl string) string {
 		fmt.Println(err)
 	}
 
-	//fmt.Println(string(body))
 	return string(body)
 }

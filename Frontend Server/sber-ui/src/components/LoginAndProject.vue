@@ -1,7 +1,7 @@
 <template>
-  <el-form ref="form" :model="keys" label-width="120px">
+  <el-form ref="form" :model="keys" label-width="120px" :disabled="disabled">
     <el-form-item label="Choose project">
-      <el-select v-model="value" placeholder="Select" v-on:change="saveProjID">
+      <el-select v-model="value" placeholder="Select" v-on:change="saveProjID" v-on:focus="ShowProjects">
         <el-option
             v-for="item in projects"
             :key="item.id"
@@ -33,7 +33,8 @@ export default {
 
       value: '',
 
-      disabled: false,
+      disabled: true,
+      gotProjects: false,
       keys: {
         accessKey: "",
         secretKey: "",
@@ -42,19 +43,7 @@ export default {
     }
   },
   created: function () {
-    axios_instance.get("/projects").then(function (response) {
-      console.log(response.data)
-      if (response.data.error.length === 0) {
-        this.disabled = true
-        this.$emit('success', "Successfully authenticated")
-        console.log(response.data.projects)
-        this.projects = response.data.projects
-      } else {
-        this.$emit('error', response.data.error)
-      }
-    }.bind(this)).catch(function (error) {
-      console.log(error);
-    });
+    this.CheckToken()
   },
   methods: {
     saveProjID() {
@@ -65,6 +54,35 @@ export default {
           }).then(function (response) {
         console.log(response.data)
         this.$emit('success', response.data)
+      }.bind(this)).catch(function (error) {
+        console.log(error);
+      });
+    },
+    ShowProjects(){
+      if (!this.gotProjects) {
+        axios_instance.get("/projects").then(function (response) {
+          console.log(response.data)
+          if (response.data.error.length === 0) {
+            this.gotProjects = true
+            this.projects = response.data.projects
+          } else {
+            this.$emit('error', response.data.error)
+          }
+        }.bind(this)).catch(function (error) {
+          console.log(error);
+        })}
+    },
+    CheckToken(){
+      axios_instance.get("/token").then(function (response) {
+        console.log(response.data)
+        if (response.data.length === 0) {
+          this.disabled = false
+          this.$emit('success', "Token accepted")
+          console.log(response.data.projects)
+          this.projects = response.data.projects
+        } else {
+          this.$emit('error', response.data)
+        }
       }.bind(this)).catch(function (error) {
         console.log(error);
       });

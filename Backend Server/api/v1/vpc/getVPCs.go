@@ -1,4 +1,4 @@
-package vpcs
+package vpc
 
 import (
 	"backend/api/v1/auth"

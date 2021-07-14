@@ -42,7 +42,7 @@ func (api *SbAPI) Register(wsContainer *restful.Container, insecure bool) error 
 	wsContainer.Filter(logFilter)
 	//wsContainer.Filter(authFilter)
 
-	info.NewResource().Register(wsContainer)
+	info.NewResource().RegisterGet(wsContainer)
 
 	return nil
 }

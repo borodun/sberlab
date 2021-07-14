@@ -1,4 +1,4 @@
-package ecss
+package ecs
 
 import (
 	"backend/api/v1/auth"

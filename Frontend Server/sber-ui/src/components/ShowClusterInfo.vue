@@ -2,7 +2,7 @@
   <div id="all">
     <el-row>
       <el-col :span="24">
-        <div class="grid-content bg-purple-dark"><h1 id="ecsList">Brief info about project</h1></div>
+        <div class="grid-content bg-purple-dark"><h1 id="ecsList">Brief info about project entities</h1></div>
       </el-col>
     </el-row>
     <Auth v-on:success="ShowSuccess($event)" v-on:error="ShowError($event)"></Auth>

@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 )
 
 func MakeRequestBody(reqUrl string, bodyStr string) (string, string) {
@@ -86,6 +87,7 @@ func GetToken(username string, password string, domainName string) string {
 	json.Unmarshal([]byte(errStr), &errCheck)
 	str := errorcheck.CheckError(errCheck)
 
-	requester.Token = token
+	requester.Tok.Token = token
+	requester.Tok.CreationTime = time.Now()
 	return str
 }

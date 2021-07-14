@@ -1,0 +1,18 @@
+{
+  "entities": [
+    {
+      "endpoint": "ecs.ru-moscow-1.hc.sbercloud.ru/v1",
+      "link": "cloudservers",
+      "type_in_json": "servers",
+      "type": "ecs",
+      "details": "/detail"
+    },
+    {
+      "endpoint": "vpc.ru-moscow-1.hc.sbercloud.ru/v1",
+      "link": "vpcs",
+      "type_in_json": "vpcs",
+      "type": "vpc",
+      "details": ""
+    }
+  ]
+}

@@ -7,7 +7,6 @@ require (
 	github.com/emicklei/go-restful v2.15.0+incompatible
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/handlers v1.5.1
-	github.com/gorilla/schema v1.2.0
 	github.com/juju/loggo v0.0.0-20210702145002-48aac3f452bc
 	github.com/spf13/viper v1.8.1
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect

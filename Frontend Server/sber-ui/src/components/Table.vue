@@ -1,11 +1,8 @@
 <template>
   <el-form :inline="false" :model="form" label-width="120px">
-    <el-form-item :label="'Query ' + type">
-      <el-button type="primary" v-on:click="showInfo">Query</el-button>
-    </el-form-item>
-    <el-form-item label="List of type">
+    <el-form-item label="Info list" >
       <el-table
-          :data="entity[elName]"
+          :data="ents[0].entities"
           style="width: 100%"
           max-height="500"
           @selection-change="handleSelectionChange"
@@ -14,11 +11,16 @@
           border>
         <el-table-column
             type="selection"
-            width="55">
+            width="40">
         </el-table-column>
         <el-table-column
             prop="name"
             label="Name"
+            width="100">
+        </el-table-column>
+        <el-table-column
+            prop="type"
+            label="Type"
             width="100">
         </el-table-column>
         <el-table-column
@@ -35,6 +37,9 @@
         <el-table-column
             label="Operations"
             fit>
+          <template #header>
+            <el-button type="primary" v-on:click="showInfo">Query</el-button>
+          </template>
           <template #default="scope">
             <el-button
                 size="mini"
@@ -77,17 +82,19 @@ export default {
   },
   data() {
     return {
-      entity: {
+      typeName: [this.type],
+
+      ents: [{
         error: "",
-        count: 4,
-        [this.elName]: [
+        entities: [
           {
             name: "",
             id: "",
-            status: ""
+            status: "",
+            type:""
           }
         ]
-      },
+      }],
       multipleSelection: []
     }
   },
@@ -103,7 +110,7 @@ export default {
             }
           }).then(result => {
         this.entity = result.data
-        if (this.entity.error.length !== 0) {
+        if (this.entity[0].error.length !== 0) {
           console.log("Error: " + this.entity.error)
           this.$emit('error', result.data.error)
         }

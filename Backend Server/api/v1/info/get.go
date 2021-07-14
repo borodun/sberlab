@@ -2,14 +2,18 @@ package info
 
 import (
 	"backend/api/v1/auth"
-	"backend/api/v1/ecss"
+	"backend/api/v1/entites"
 	"backend/api/v1/iam"
-	"backend/api/v1/vpcs"
+	"backend/api/v1/requester"
+	"backend/api/v1/vpc"
+	"encoding/json"
 	"fmt"
 	"github.com/emicklei/go-restful"
 	"github.com/juju/loggo"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 )
 
 var logger = loggo.GetLogger("info")
@@ -28,7 +32,7 @@ func NewResource() *Resource {
 	return &Resource{}
 }
 
-func (c *Resource) Register(container *restful.Container) *Resource {
+func (c *Resource) RegisterGet(container *restful.Container) *Resource {
 	ws := new(restful.WebService)
 	ws.Consumes(restful.MIME_JSON)
 	ws.Produces(restful.MIME_JSON)
@@ -54,6 +58,10 @@ func (c *Resource) Register(container *restful.Container) *Resource {
 		Doc("Saves access and secret auth").
 		Operation("GetProjects"))
 
+	ws.Route(ws.GET(fmt.Sprintf("/token")).To(c.CreateToken).
+		Doc("Creates token if it hasn't been created or expired").
+		Operation("CreateToken"))
+
 	ws.Route(ws.POST(fmt.Sprintf("/projid")).To(c.PostProjID).
 		Param(ws.BodyParameter("ProjID", "Project id in cloud").DataType("ProjID")).
 		Doc("Saves project id").
@@ -64,67 +72,55 @@ func (c *Resource) Register(container *restful.Container) *Resource {
 	return c
 }
 
-func (c *Resource) GetECSList(request *restful.Request, response *restful.Response) {
-	offset := request.QueryParameter(queryParamOffset)
-	limit := request.QueryParameter(queryParamLimit)
+func GetEntities() []entites.EntityInfo {
+	var utilArray entites.EntityArray
+	config, _ := ioutil.ReadFile("./api/v1/info/config.json")
+	err := json.Unmarshal(config, &utilArray)
+	if err != nil {
+		return nil
+	}
+	return utilArray.EntityInfos
+}
 
-	if auth.InfoAuth.Auth == nil {
-		type Error struct {
-			Error string `json:"error"`
-		}
-		var err Error
-		err.Error = "Server has no saved keys"
-		logger.Infof("Error: no saved keys")
-		response.WriteEntity(err)
-		return
+func (c *Resource) GetECSList(request *restful.Request, response *restful.Response) {
+	requester.QueryParams.Limit = request.QueryParameter(queryParamLimit)
+	requester.QueryParams.Offset = request.QueryParameter(queryParamOffset)
+
+	var utilArray = GetEntities()
+	var ents []entites.Entities
+	for i := 0; i < len(utilArray); i++ {
+		ent := requester.MakeUniRequest(&utilArray[i])
+		ents = append(ents, ent)
 	}
 
-	ecssT := ecss.GetECSs(limit, offset)
-
-	response.WriteEntity(ecssT)
+	response.WriteEntity(ents)
 }
 
 func (c *Resource) GetVPCList(request *restful.Request, response *restful.Response) {
 	limit := request.QueryParameter(queryParamLimit)
 
-	if auth.InfoAuth.Auth == nil {
-		type Error struct {
-			Error string `json:"error"`
-		}
-		var err Error
-		err.Error = "Server has no saved keys"
-		logger.Infof("Error: no saved keys")
-		response.WriteEntity(err)
-		return
-	}
-
-	vpcsT := vpcs.GetVPCs(limit)
+	vpcsT := vpc.GetVPCs(limit)
 	response.WriteEntity(vpcsT)
 }
 
-func (c *Resource) GetProjects(req *restful.Request, resp *restful.Response) {
-	authLog := new(auth.Login)
-	authLog.Login = os.Getenv("LOGIN")
-	authLog.Password = os.Getenv("PASSWORD")
-	authLog.DomainName = "fitnsu"
-	auth.InfoAuth.Auth = authLog
+func (c *Resource) CreateToken(req *restful.Request, resp *restful.Response) {
+	if requester.Tok.CreationTime.Before(time.Now().Add(-1 * time.Hour)) {
+		authLog := new(auth.Login)
+		authLog.Login = os.Getenv("LOGIN")
+		authLog.Password = os.Getenv("PASSWORD")
+		authLog.DomainName = "fitnsu"
+		auth.InfoAuth.Auth = authLog
 
-	errStr := iam.GetToken(authLog.Login, authLog.Password, authLog.DomainName)
-	fmt.Printf("Error with token: " + errStr)
-	projs := iam.GetProjects()
+		errStr := iam.GetToken(authLog.Login, authLog.Password, authLog.DomainName)
+		logger.Infof("Token created: " + requester.Tok.Token)
 
-	logger.Infof("Saved auth: access key: %s, secret key: %s", authLog.Login, authLog.Password)
-	resp.WriteHeaderAndEntity(http.StatusOK, projs)
-}
-
-func (c *Resource) PostProjID(req *restful.Request, resp *restful.Response) {
-	projID := new(auth.ProjID)
-	err := req.ReadEntity(projID)
-	if err != nil {
-		resp.WriteErrorString(http.StatusBadRequest, err.Error())
+		resp.WriteHeaderAndEntity(http.StatusOK, errStr)
 		return
 	}
-	auth.InfoAuth.ProjectID = projID.ProjectID
-	logger.Infof("Saved project id: %s", projID.ProjectID)
-	resp.WriteHeaderAndEntity(http.StatusOK, "Project id successfully saved")
+	resp.WriteHeaderAndEntity(http.StatusOK, "")
+}
+
+func (c *Resource) GetProjects(req *restful.Request, resp *restful.Response) {
+	projs := iam.GetProjects()
+	resp.WriteHeaderAndEntity(http.StatusOK, projs)
 }
