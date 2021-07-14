@@ -9,6 +9,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/juju/loggo"
 	"net/http"
+	"os"
 )
 
 var logger = loggo.GetLogger("info")
@@ -48,10 +49,10 @@ func (c *Resource) Register(container *restful.Container) *Resource {
 		Doc("Returns ECSs list").
 		Operation("GetECSList"))
 
-	ws.Route(ws.POST(fmt.Sprintf("/keys")).To(c.PostKeys).
+	ws.Route(ws.GET(fmt.Sprintf("/projects")).To(c.GetProjects).
 		Param(ws.BodyParameter("Keys", "Keys for auth").DataType("Keys")).
-		Doc("Saves access and secret authKeys").
-		Operation("PostKeys"))
+		Doc("Saves access and secret auth").
+		Operation("GetProjects"))
 
 	ws.Route(ws.POST(fmt.Sprintf("/projid")).To(c.PostProjID).
 		Param(ws.BodyParameter("ProjID", "Project id in cloud").DataType("ProjID")).
@@ -67,7 +68,7 @@ func (c *Resource) GetECSList(request *restful.Request, response *restful.Respon
 	offset := request.QueryParameter(queryParamOffset)
 	limit := request.QueryParameter(queryParamLimit)
 
-	if auth.InfoAuth.Signer == nil {
+	if auth.InfoAuth.Auth == nil {
 		type Error struct {
 			Error string `json:"error"`
 		}
@@ -86,7 +87,7 @@ func (c *Resource) GetECSList(request *restful.Request, response *restful.Respon
 func (c *Resource) GetVPCList(request *restful.Request, response *restful.Response) {
 	limit := request.QueryParameter(queryParamLimit)
 
-	if auth.InfoAuth.Signer == nil {
+	if auth.InfoAuth.Auth == nil {
 		type Error struct {
 			Error string `json:"error"`
 		}
@@ -101,20 +102,18 @@ func (c *Resource) GetVPCList(request *restful.Request, response *restful.Respon
 	response.WriteEntity(vpcsT)
 }
 
-func (c *Resource) PostKeys(req *restful.Request, resp *restful.Response) {
-	authKeys := new(auth.Keys)
-	err := req.ReadEntity(authKeys)
-	if err != nil {
-		resp.WriteErrorString(http.StatusBadRequest, err.Error())
-		return
-	}
-	auth.InfoAuth.Signer = authKeys
+func (c *Resource) GetProjects(req *restful.Request, resp *restful.Response) {
+	authLog := new(auth.Login)
+	authLog.Login = os.Getenv("LOGIN")
+	authLog.Password = os.Getenv("PASSWORD")
+	authLog.DomainName = "fitnsu"
+	auth.InfoAuth.Auth = authLog
 
-	errStr := iam.GetToken(authKeys.AKey, authKeys.SKey, authKeys.DomainName)
+	errStr := iam.GetToken(authLog.Login, authLog.Password, authLog.DomainName)
 	fmt.Printf("Error with token: " + errStr)
 	projs := iam.GetProjects()
 
-	logger.Infof("Saved authKeys: access key: %s, secret key: %s", authKeys.AKey, authKeys.SKey)
+	logger.Infof("Saved auth: access key: %s, secret key: %s", authLog.Login, authLog.Password)
 	resp.WriteHeaderAndEntity(http.StatusOK, projs)
 }
 

@@ -1,17 +1,17 @@
 package auth
 
-type Keys struct {
-	AKey       string `json:"aKey"`
-	SKey       string `json:"sKey"`
-	DomainName string `json:"domain"`
+type Login struct {
+	Login      string
+	Password   string
+	DomainName string
 }
 
 type ProjID struct {
-	ProjectID string `json:"projectID"`
+	ProjectID string
 }
 
 type Auth struct {
-	Signer    *Keys
+	Auth      *Login
 	ProjectID string
 }
 

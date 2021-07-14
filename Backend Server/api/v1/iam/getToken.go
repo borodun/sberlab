@@ -11,12 +11,13 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 func MakeRequestBody(reqUrl string, bodyStr string) (string, string) {
 	signer := core.Signer{
-		Key:    auth.InfoAuth.Signer.AKey,
-		Secret: auth.InfoAuth.Signer.SKey,
+		Key:    os.Getenv("ACCESSKEY"),
+		Secret: os.Getenv("SECRETKEY"),
 	}
 
 	req, err := http.NewRequest("POST", reqUrl, ioutil.NopCloser(bytes.NewBuffer([]byte(bodyStr))))

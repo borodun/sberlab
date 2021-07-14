@@ -16,3 +16,7 @@
 
 *.pem
 auth.auto.tfvars
+config.env
+KeyPair*.pem
+token.txt
+exportScript.sh

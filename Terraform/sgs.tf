@@ -34,6 +34,18 @@ locals {
       port = 11251,
       source = "0.0.0.0/0"
     },
+    lb-front-rule = {
+      description = "Allow frontend",
+      protocol = "tcp",
+      port = 32222,
+      source = "0.0.0.0/0"
+    },
+    lb-back-rule = {
+      description = "Allow backend",
+      protocol = "tcp",
+      port = 32223,
+      source = "0.0.0.0/0"
+    }
     https-rule = {
       description = "Allow HTTPS from anywhere",
       protocol = "tcp",

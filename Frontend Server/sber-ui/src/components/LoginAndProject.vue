@@ -1,19 +1,5 @@
 <template>
-  <el-form ref="form" :model="keys" label-width="120px" :disabled="disabled">
-    <el-form-item label="Domain Name">
-      <el-input v-model="keys.domain" clearable></el-input>
-    </el-form-item>
-    <el-form-item label="Login">
-      <el-input v-model="keys.accessKey" clearable></el-input>
-    </el-form-item>
-    <el-form-item label="Password">
-      <el-input v-model="keys.secretKey" show-password clearable></el-input>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" v-on:click="saveKeys">Login</el-button>
-    </el-form-item>
-  </el-form>
-  <el-form ref="form" :model="keys" label-width="120px" :disabled="!disabled">
+  <el-form ref="form" :model="keys" label-width="120px">
     <el-form-item label="Choose project">
       <el-select v-model="value" placeholder="Select" v-on:change="saveProjID">
         <el-option
@@ -55,28 +41,22 @@ export default {
       },
     }
   },
+  created: function () {
+    axios_instance.get("/projects").then(function (response) {
+      console.log(response.data)
+      if (response.data.error.length === 0) {
+        this.disabled = true
+        this.$emit('success', "Successfully authenticated")
+        console.log(response.data.projects)
+        this.projects = response.data.projects
+      } else {
+        this.$emit('error', response.data.error)
+      }
+    }.bind(this)).catch(function (error) {
+      console.log(error);
+    });
+  },
   methods: {
-    saveKeys() {
-      axios_instance.post(
-          "/keys",
-          {
-            aKey: this.keys.accessKey,
-            sKey: this.keys.secretKey,
-            domain: this.keys.domain
-          }).then(function (response) {
-        console.log(response.data)
-        if (response.data.error.length === 0) {
-          this.disabled = true
-          this.$emit('success', "Successfully authenticated")
-          console.log(response.data.projects)
-          this.projects = response.data.projects
-        } else {
-          this.$emit('error', response.data.error)
-        }
-      }.bind(this)).catch(function (error) {
-        console.log(error);
-      });
-    },
     saveProjID() {
       axios_instance.post(
           "/projid",

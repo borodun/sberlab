@@ -1,6 +1,6 @@
 FROM golang:1.16.5-buster
 
-WORKDIR /back
+WORKDIR /SberLab/Backend
 COPY ./ .
 EXPOSE 9999
 

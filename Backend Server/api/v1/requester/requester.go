@@ -1,7 +1,6 @@
 package requester
 
 import (
-	"backend/api/configuration"
 	"backend/api/v1/auth"
 	"bytes"
 	"fmt"
@@ -9,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 var Token string
@@ -18,14 +18,10 @@ func MakeRequest(reqUrl string) string {
 		Key:    auth.InfoAuth.Signer.AKey,
 		Secret: auth.InfoAuth.Signer.SKey,
 	}*/
-	config, errBool := configuration.LoadConfig("../../")
-	if errBool {
-		return "{error: 'Wrong config'}"
-	}
 
 	signer := core.Signer{
-		Key:    config.AccessKey,
-		Secret: config.SecretKey,
+		Key:    os.Getenv("ACCESSKEY"),
+		Secret: os.Getenv("SECRETKEY"),
 	}
 
 	req, err := http.NewRequest("GET", reqUrl, ioutil.NopCloser(bytes.NewBuffer([]byte(""))))

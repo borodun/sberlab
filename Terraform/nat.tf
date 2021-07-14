@@ -54,13 +54,35 @@ resource "sbercloud_nat_dnat_rule" "dnat_02" {
   //source_type = 0  // We need that field, sber!!!!!
 }
 
-resource "sbercloud_nat_dnat_rule" "dnat_04" {
+resource "sbercloud_nat_dnat_rule" "dnat_03" {
   floating_ip_id = sbercloud_vpc_eip.nat_eip.id
   nat_gateway_id = sbercloud_nat_gateway.nat_01.id
   private_ip = sbercloud_compute_instance.ecs_master.access_ip_v4
   protocol = "tcp"
   internal_service_port = 11251
   external_service_port = 11251
+
+  //source_type = 0  // We need that field, sber!!!!!
+}
+
+resource "sbercloud_nat_dnat_rule" "dnat_04" {
+  floating_ip_id = sbercloud_vpc_eip.nat_eip.id
+  nat_gateway_id = sbercloud_nat_gateway.nat_01.id
+  private_ip = sbercloud_compute_instance.ecs_master.access_ip_v4
+  protocol = "tcp"
+  internal_service_port = 80
+  external_service_port = 32222
+
+  //source_type = 0  // We need that field, sber!!!!!
+}
+
+resource "sbercloud_nat_dnat_rule" "dnat_05" {
+  floating_ip_id = sbercloud_vpc_eip.nat_eip.id
+  nat_gateway_id = sbercloud_nat_gateway.nat_01.id
+  private_ip = sbercloud_compute_instance.ecs_master.access_ip_v4
+  protocol = "tcp"
+  internal_service_port = 9999
+  external_service_port = 32223
 
   //source_type = 0  // We need that field, sber!!!!!
 }
