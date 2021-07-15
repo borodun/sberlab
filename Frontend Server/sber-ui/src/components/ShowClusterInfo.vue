@@ -8,14 +8,13 @@
     <Auth v-on:success="ShowSuccess($event)" v-on:error="ShowError($event)"></Auth>
     <el-form ref="form" :model="form" label-width="120px" :inline="true">
       <el-form-item label="Offset">
-        <el-input-number v-model="form.offset" :min="1"></el-input-number>
+        <el-input-number v-model="form.offset" :min="0"></el-input-number>
       </el-form-item>
       <el-form-item label="Limit">
         <el-input-number v-model="form.limit" :min="1"></el-input-number>
       </el-form-item>
     </el-form>
-    <Table v-bind:type="'ecs'" v-bind:form="computedForm" v-bind:el-name="'servers'" v-on:error="AddData($event)"></Table>
-    <Table v-bind:type="'vpc'" v-bind:form="computedForm" v-bind:el-name="'vpcs'" v-on:error="ShowError($event)"></Table>
+    <Table v-bind:form="computedForm" v-on:error="ShowError($event)"></Table>
     <el-collapse accordion>
       <el-collapse-item title="Raw Data" name="1">
         <div><span style="white-space: pre-wrap;">{{ this.info }}</span></div>
@@ -39,7 +38,7 @@ export default {
     return {
       form: {
         offset: 0,
-        limit: 0,
+        limit: 10,
       },
       info: {}
     }
@@ -50,9 +49,6 @@ export default {
     }
   },
   methods: {
-    AddData(data) {
-      this.info.add(data)
-    },
     ShowError(msg) {
       this.$notify({
         title: 'Error',

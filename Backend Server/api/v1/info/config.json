@@ -13,6 +13,76 @@
       "type_in_json": "vpcs",
       "type": "vpc",
       "details": ""
+    },
+    {
+      "endpoint": "evs.ru-moscow-1.hc.sbercloud.ru/v2",
+      "link": "cloudvolumes",
+      "type_in_json": "volumes",
+      "type": "volume",
+      "details": "/detail"
+    },
+    {
+      "endpoint": "vpc.ru-moscow-1.hc.sbercloud.ru/v1",
+      "link": "subnets",
+      "type_in_json": "subnets",
+      "type": "subnet",
+      "details": ""
+    },
+    {
+      "endpoint": "vpc.ru-moscow-1.hc.sbercloud.ru/v1",
+      "link": "security-groups",
+      "type_in_json": "security_groups",
+      "type": "sg",
+      "details": ""
+    },
+    {
+      "endpoint": "nat.ru-moscow-1.hc.sbercloud.ru/v2",
+      "link": "nat_gateways",
+      "type_in_json": "nat_gateways",
+      "type": "nat",
+      "details": ""
+    },
+    {
+      "endpoint": "nat.ru-moscow-1.hc.sbercloud.ru/v2",
+      "link": "snat_rules",
+      "type_in_json": "snat_rules",
+      "type": "snat",
+      "details": ""
+    },
+    {
+      "endpoint": "nat.ru-moscow-1.hc.sbercloud.ru/v2",
+      "link": "dnat_rules",
+      "type_in_json": "dnat_rules",
+      "type": "dnat",
+      "details": ""
+    },
+    {
+      "endpoint": "eip.ru-moscow-1.hc.sbercloud.ru/v1",
+      "link": "publicips",
+      "type_in_json": "publicips",
+      "type": "eip",
+      "details": ""
+    },
+    {
+      "endpoint": "elb.ru-moscow-1.hc.sbercloud.ru/v2.0",
+      "link": "lbaas/loadbalancers",
+      "type_in_json": "loadbalancers",
+      "type": "elb",
+      "details": ""
+    },
+    {
+      "endpoint": "elb.ru-moscow-1.hc.sbercloud.ru/v2.0",
+      "link": "lbaas/listeners",
+      "type_in_json": "listeners",
+      "type": "listener",
+      "details": ""
+    },
+    {
+      "endpoint": "elb.ru-moscow-1.hc.sbercloud.ru/v2.0",
+      "link": "lbaas/pools",
+      "type_in_json": "pools",
+      "type": "pool",
+      "details": ""
     }
   ]
 }

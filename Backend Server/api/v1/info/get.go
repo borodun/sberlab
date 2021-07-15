@@ -5,7 +5,6 @@ import (
 	"backend/api/v1/entites"
 	"backend/api/v1/iam"
 	"backend/api/v1/requester"
-	"backend/api/v1/vpc"
 	"encoding/json"
 	"fmt"
 	"github.com/emicklei/go-restful"
@@ -39,19 +38,12 @@ func (c *Resource) RegisterGet(container *restful.Container) *Resource {
 
 	ws.Path("/info").Doc("Sb API version 1")
 
-	ws.Route(ws.GET(fmt.Sprintf("/ecs")).To(c.GetECSList).
+	ws.Route(ws.GET(fmt.Sprintf("/entities")).To(c.GetProjectEntities).
 		Param(ws.QueryParameter(queryParamOffset, "Specifies a page number").DataType("integer")).
 		Param(ws.QueryParameter(queryParamLimit, "Specifies the maximum number of ECSs on one page.").DataType("integer")).
 		Param(ws.QueryParameter(queryParamStatus, "Specifies the ECS status.").DataType("string")).
 		Doc("Returns ECSs list").
-		Operation("GetECSList"))
-
-	ws.Route(ws.GET(fmt.Sprintf("/vpc")).To(c.GetVPCList).
-		Param(ws.QueryParameter(queryParamOffset, "Specifies a page number").DataType("integer")).
-		Param(ws.QueryParameter(queryParamLimit, "Specifies the maximum number of ECSs on one page.").DataType("integer")).
-		Param(ws.QueryParameter(queryParamStatus, "Specifies the ECS status.").DataType("string")).
-		Doc("Returns ECSs list").
-		Operation("GetECSList"))
+		Operation("GetProjectEntities"))
 
 	ws.Route(ws.GET(fmt.Sprintf("/projects")).To(c.GetProjects).
 		Param(ws.BodyParameter("Keys", "Keys for auth").DataType("Keys")).
@@ -82,25 +74,25 @@ func GetEntities() []entites.EntityInfo {
 	return utilArray.EntityInfos
 }
 
-func (c *Resource) GetECSList(request *restful.Request, response *restful.Response) {
+func (c *Resource) GetProjectEntities(request *restful.Request, response *restful.Response) {
 	requester.QueryParams.Limit = request.QueryParameter(queryParamLimit)
 	requester.QueryParams.Offset = request.QueryParameter(queryParamOffset)
 
 	var utilArray = GetEntities()
-	var ents []entites.Entities
+	var ents []entites.Entity
+	var ent []entites.Entity
+	var answerEnts entites.AnswerEntities
+	var err string
 	for i := 0; i < len(utilArray); i++ {
-		ent := requester.MakeUniRequest(&utilArray[i])
-		ents = append(ents, ent)
+		if ent, err = requester.MakeUniRequest(&utilArray[i]); len(err) != 0 {
+			continue
+		}
+		ents = append(ents, ent...)
 	}
+	answerEnts.Error = err
+	answerEnts.AnswerEntities = ents
 
-	response.WriteEntity(ents)
-}
-
-func (c *Resource) GetVPCList(request *restful.Request, response *restful.Response) {
-	limit := request.QueryParameter(queryParamLimit)
-
-	vpcsT := vpc.GetVPCs(limit)
-	response.WriteEntity(vpcsT)
+	response.WriteEntity(answerEnts)
 }
 
 func (c *Resource) CreateToken(req *restful.Request, resp *restful.Response) {

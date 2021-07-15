@@ -2,18 +2,27 @@ package error_check
 
 import (
 	"backend/api/v1/messages"
+	"encoding/json"
 )
 
 type ErrorCheck struct {
 	ErrorMessage string               `json:"error_msg"`
 	Error        messages.ErrorWithID `json:"error"`
+	Message      string               `json:"message"`
 }
 
-func CheckError(check ErrorCheck) string {
-	if len(check.ErrorMessage) != 0 {
-		return check.ErrorMessage
-	} else if len(check.Error.Message) != 0 {
-		return check.Error.Message
+func CheckError(check string) string {
+	var errCheck ErrorCheck
+	if err := json.Unmarshal([]byte(check), &errCheck); err != nil {
+		return err.Error()
+	}
+
+	if len(errCheck.ErrorMessage) != 0 {
+		return errCheck.ErrorMessage
+	} else if len(errCheck.Error.Message) != 0 {
+		return errCheck.Error.Message
+	} else if len(errCheck.Message) != 0 {
+		return errCheck.Message
 	}
 	return ""
 }

@@ -1,10 +1,9 @@
 <template>
   <el-form :inline="false" :model="form" label-width="120px">
-    <el-form-item label="Info list" >
+    <el-form-item label="Info list">
       <el-table
-          :data="ents[0].entities"
+          :data="projectData.entities_array"
           style="width: 100%"
-          max-height="500"
           @selection-change="handleSelectionChange"
           stripe
           fit
@@ -16,29 +15,33 @@
         <el-table-column
             prop="name"
             label="Name"
-            width="100">
+            width="100"
+            sortable>
         </el-table-column>
         <el-table-column
             prop="type"
             label="Type"
-            width="100">
+            width="100"
+            sortable>
         </el-table-column>
         <el-table-column
             fixed
             prop="id"
             label="ID"
-            width="155">
+            width="155"
+            sortable>
         </el-table-column>
         <el-table-column
             prop="status"
             label="Status"
-            width="120">
+            width="120"
+            sortable>
         </el-table-column>
         <el-table-column
             label="Operations"
             fit>
           <template #header>
-            <el-button type="primary" v-on:click="showInfo">Query</el-button>
+            <el-button type="primary" v-on:click="showInfo" :loading="loading">Query</el-button>
           </template>
           <template #default="scope">
             <el-button
@@ -49,7 +52,8 @@
               <template #reference>
                 <el-button
                     size="mini"
-                    type="danger">Delete</el-button>
+                    type="danger">Delete
+                </el-button>
               </template>
             </el-popconfirm>
           </template>
@@ -76,45 +80,41 @@ const axios_instance = axios.create({
 export default {
   name: "Table",
   props: {
-    elName: String,
-    type: String,
     form: Object,
   },
   data() {
     return {
-      typeName: [this.type],
-
-      ents: [{
+      loading: false,
+      projectData: {
         error: "",
-        entities: [
-          {
-            name: "",
-            id: "",
-            status: "",
-            type:""
-          }
-        ]
-      }],
-      multipleSelection: []
+        entities_array: [{
+          name: "",
+          id: "",
+          status: "",
+          type: ""
+        }],
+        multipleSelection: []
+      }
     }
   },
 
   methods: {
     showInfo() {
-      console.log("Offset: " + this.form.offset + " Limit: " + this.form.limit)
-      axios_instance.get("/" + this.type + "?",
+      //console.log("Offset: " + this.form.offset + " Limit: " + this.form.limit)
+      this.loading = true
+      axios_instance.get("/entities",
           {
             params: {
               offset: this.form.offset,
               limit: this.form.limit,
             }
           }).then(result => {
-        this.entity = result.data
-        if (this.entity[0].error.length !== 0) {
-          console.log("Error: " + this.entity.error)
-          this.$emit('error', result.data.error)
+        this.loading = false
+        this.projectData = result.data
+        if (this.projectData.error.length !== 0) {
+          console.log("Error: " + this.projectData.error)
+          this.$emit('error', this.projectData.error)
         }
-        console.log(result)
       }, error => {
         console.error(error);
       });

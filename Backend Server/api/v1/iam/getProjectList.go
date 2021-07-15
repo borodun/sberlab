@@ -27,9 +27,7 @@ func GetProjects() Projects {
 	projectsList := requester.MakeRequest(reqUrl)
 	logger.Infof("Response from sber: " + projectsList)
 
-	var errCheck errorcheck.ErrorCheck
-	json.Unmarshal([]byte(projectsList), &errCheck)
-	str := errorcheck.CheckError(errCheck)
+	str := errorcheck.CheckError(projectsList)
 
 	var projs Projects
 	json.Unmarshal([]byte(projectsList), &projs)

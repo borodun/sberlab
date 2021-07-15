@@ -5,7 +5,6 @@ import (
 	errorcheck "backend/api/v1/error-check"
 	"backend/api/v1/requester"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/borodun/SberLab/core"
 	"io"
@@ -82,10 +81,7 @@ func GetToken(username string, password string, domainName string) string {
 }`, username, password, domainName, domainName)
 
 	token, errStr := MakeRequestBody(reqUrl, tokenRequest)
-
-	var errCheck errorcheck.ErrorCheck
-	json.Unmarshal([]byte(errStr), &errCheck)
-	str := errorcheck.CheckError(errCheck)
+	str := errorcheck.CheckError(errStr)
 
 	requester.Tok.Token = token
 	requester.Tok.CreationTime = time.Now()
