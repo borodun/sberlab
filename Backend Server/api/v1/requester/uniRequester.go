@@ -31,13 +31,16 @@ func getBackendServrs(groupID string) ([]entites.Entity, string) {
 		return empty, "Backend servers: " + err.Error()
 	}
 
-	var retEnt = make([]entites.Entity, 1)
-	retEnt[0].Type = "backend server"
-	retEnt[0].Name = ent.Entities[0].Name
-	retEnt[0].ID = ent.Entities[0].ID
-	retEnt[0].Status = ent.Entities[0].Status
+	var ents entites.Entities
+	for i := 0; i < len(ent.Entities); i++ {
+		ents.Entities = append(ents.Entities, empty...)
+		ents.Entities[i].Name = "Server " + strconv.Itoa(i+1)
+		ents.Entities[i].ID = ent.Entities[i].ID
+		ents.Entities[i].Status = ent.Entities[i].Status
+		ents.Entities[i].Type = "backend"
+	}
 
-	return retEnt, ""
+	return ents.Entities, ""
 }
 
 func MakeUniRequest(uniReq *entites.EntityInfo) ([]entites.Entity, string) {
@@ -157,7 +160,7 @@ func MakeUniRequest(uniReq *entites.EntityInfo) ([]entites.Entity, string) {
 			ents.Entities = append(ents.Entities, empty...)
 			ents.Entities[i].Name = ent.Entities[i].Name
 			ents.Entities[i].ID = ent.Entities[i].ID
-			ents.Entities[i].Status = "Listening on port " + strconv.Itoa(ent.Entities[i].Port)
+			ents.Entities[i].Status = "Listening on port: " + strconv.Itoa(ent.Entities[i].Port)
 		}
 		break
 	case "pools":
@@ -169,12 +172,12 @@ func MakeUniRequest(uniReq *entites.EntityInfo) ([]entites.Entity, string) {
 			ents.Entities = append(ents.Entities, empty...)
 			ents.Entities[i].Name = ent.Entities[i].Name
 			ents.Entities[i].ID = ent.Entities[i].ID
-			ents.Entities[i].Status = "Listening on port " + ent.Entities[i].Protocol
-			ents.Entities[i].Type = jsonType
+			ents.Entities[i].Status = "Protocol: " + ent.Entities[i].Protocol
+			ents.Entities[i].Type = uniReq.Type
 		}
 		for i := 0; i < len(ent.Entities); i++ {
-			entt, _ := getBackendServrs(ent.Entities[i].ID)
-			ents.Entities = append(ents.Entities, entt...)
+			servers, _ := getBackendServrs(ent.Entities[i].ID)
+			ents.Entities = append(ents.Entities, servers...)
 		}
 		break
 

@@ -48,7 +48,7 @@ export default {
   methods: {
     saveProjID() {
       axios_instance.post(
-          "/projid",
+          "/post/saveid",
           {
             projectID: this.value
           }).then(function (response) {
@@ -60,7 +60,7 @@ export default {
     },
     ShowProjects(){
       if (!this.gotProjects) {
-        axios_instance.get("/projects").then(function (response) {
+        axios_instance.get("/info/projects").then(function (response) {
           console.log(response.data)
           if (response.data.error.length === 0) {
             this.gotProjects = true
@@ -73,7 +73,7 @@ export default {
         })}
     },
     CheckToken(){
-      axios_instance.get("/token").then(function (response) {
+      axios_instance.get("/info/token").then(function (response) {
         console.log(response.data)
         if (response.data.length === 0) {
           this.disabled = false

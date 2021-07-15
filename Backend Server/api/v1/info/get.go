@@ -17,10 +17,13 @@ import (
 
 var logger = loggo.GetLogger("info")
 
+var utilArray []entites.EntityInfo
+
 const (
 	queryParamOffset = "offset"
 	queryParamLimit  = "limit"
-	queryParamStatus = "status"
+	queryParamID     = "id"
+	queryParamType   = "type"
 )
 
 type Resource struct {
@@ -41,9 +44,14 @@ func (c *Resource) RegisterGet(container *restful.Container) *Resource {
 	ws.Route(ws.GET(fmt.Sprintf("/entities")).To(c.GetProjectEntities).
 		Param(ws.QueryParameter(queryParamOffset, "Specifies a page number").DataType("integer")).
 		Param(ws.QueryParameter(queryParamLimit, "Specifies the maximum number of ECSs on one page.").DataType("integer")).
-		Param(ws.QueryParameter(queryParamStatus, "Specifies the ECS status.").DataType("string")).
 		Doc("Returns ECSs list").
 		Operation("GetProjectEntities"))
+
+	ws.Route(ws.GET(fmt.Sprintf("/detail")).To(c.GetDetail).
+		Param(ws.QueryParameter(queryParamID, "Specifies id of an entity").DataType("string")).
+		Param(ws.QueryParameter(queryParamType, "Specifies the type of entity").DataType("string")).
+		Doc("Returns detailed info about entity").
+		Operation("GetDetail"))
 
 	ws.Route(ws.GET(fmt.Sprintf("/projects")).To(c.GetProjects).
 		Param(ws.BodyParameter("Keys", "Keys for auth").DataType("Keys")).
@@ -54,31 +62,49 @@ func (c *Resource) RegisterGet(container *restful.Container) *Resource {
 		Doc("Creates token if it hasn't been created or expired").
 		Operation("CreateToken"))
 
-	ws.Route(ws.POST(fmt.Sprintf("/projid")).To(c.PostProjID).
-		Param(ws.BodyParameter("ProjID", "Project id in cloud").DataType("ProjID")).
-		Doc("Saves project id").
-		Operation("PostProjID"))
-
 	container.Add(ws)
+
+	utilArray = GetEntities()
 
 	return c
 }
 
+func (c *Resource) GetDetail(request *restful.Request, response *restful.Response) {
+	ID := request.QueryParameter(queryParamID)
+	Type := request.QueryParameter(queryParamType)
+
+	var details entites.Details
+	var detailStr string
+	var check bool
+	for i := range utilArray {
+		if utilArray[i].Type == Type {
+			detailStr, check = requester.GetEntityDetail(&utilArray[i], ID)
+			if check {
+				details.Error = detailStr
+				break
+			}
+			details.Details = detailStr
+			break
+		}
+	}
+
+	response.WriteEntity(details)
+}
+
 func GetEntities() []entites.EntityInfo {
-	var utilArray entites.EntityArray
+	var util entites.EntityArray
 	config, _ := ioutil.ReadFile("./api/v1/info/config.json")
-	err := json.Unmarshal(config, &utilArray)
+	err := json.Unmarshal(config, &util)
 	if err != nil {
 		return nil
 	}
-	return utilArray.EntityInfos
+	return util.EntityInfos
 }
 
 func (c *Resource) GetProjectEntities(request *restful.Request, response *restful.Response) {
 	requester.QueryParams.Limit = request.QueryParameter(queryParamLimit)
 	requester.QueryParams.Offset = request.QueryParameter(queryParamOffset)
 
-	var utilArray = GetEntities()
 	var ents []entites.Entity
 	var ent []entites.Entity
 	var answerEnts entites.AnswerEntities

@@ -1,5 +1,10 @@
 package entites
 
+type Details struct {
+	Error   string `json:"error"`
+	Details string `json:"details"`
+}
+
 type EntityArray struct {
 	EntityInfos []EntityInfo `json:"entities"`
 }

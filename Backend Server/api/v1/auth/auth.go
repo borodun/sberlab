@@ -6,10 +6,6 @@ type Login struct {
 	DomainName string
 }
 
-type ProjID struct {
-	ProjectID string
-}
-
 type Auth struct {
 	Auth      *Login
 	ProjectID string

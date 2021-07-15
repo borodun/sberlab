@@ -1,14 +1,17 @@
 package error_check
 
 import (
-	"backend/api/v1/messages"
 	"encoding/json"
 )
 
+type ErrorWithID struct {
+	Message string `json:"message"`
+}
+
 type ErrorCheck struct {
-	ErrorMessage string               `json:"error_msg"`
-	Error        messages.ErrorWithID `json:"error"`
-	Message      string               `json:"message"`
+	ErrorMessage string      `json:"error_msg"`
+	Error        ErrorWithID `json:"error"`
+	Message      string      `json:"message"`
 }
 
 func CheckError(check string) string {

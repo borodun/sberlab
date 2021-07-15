@@ -7,14 +7,18 @@ import (
 	"net/http"
 )
 
+type ProjID struct {
+	ProjectID string
+}
+
 func (c *Resource) RegisterPost(container *restful.Container) *Resource {
 	ws := new(restful.WebService)
 	ws.Consumes(restful.MIME_JSON)
 	ws.Produces(restful.MIME_JSON)
 
-	ws.Path("/info").Doc("Sb API version 1")
+	ws.Path("/post").Doc("Sb API version 1")
 
-	ws.Route(ws.POST(fmt.Sprintf("/projid")).To(c.PostProjID).
+	ws.Route(ws.POST(fmt.Sprintf("/saveid")).To(c.PostProjID).
 		Param(ws.BodyParameter("ProjID", "Project id in cloud").DataType("ProjID")).
 		Doc("Saves project id").
 		Operation("PostProjID"))
@@ -25,7 +29,7 @@ func (c *Resource) RegisterPost(container *restful.Container) *Resource {
 }
 
 func (c *Resource) PostProjID(req *restful.Request, resp *restful.Response) {
-	projID := new(auth.ProjID)
+	projID := new(ProjID)
 	err := req.ReadEntity(projID)
 	if err != nil {
 		resp.WriteErrorString(http.StatusBadRequest, err.Error())
