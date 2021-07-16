@@ -1,4 +1,4 @@
-module CLI
+module Getter
 
 go 1.16
 

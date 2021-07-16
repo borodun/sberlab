@@ -24,7 +24,7 @@ type Projects struct {
 func GetProjects() Projects {
 	var reqUrl = fmt.Sprintf("https://iam.ru-moscow-1.hc.sbercloud.ru/v3/auth/projects")
 
-	projectsList := requester.MakeRequest(reqUrl)
+	projectsList := requester.RequestGet(reqUrl)
 	logger.Infof("Response from sber: " + projectsList)
 
 	str := errorcheck.CheckError(projectsList)

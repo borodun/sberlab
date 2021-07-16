@@ -57,13 +57,6 @@
       "details": ""
     },
     {
-      "endpoint": "eip.ru-moscow-1.hc.sbercloud.ru/v1",
-      "link": "publicips",
-      "type_in_json": "publicips",
-      "type": "eip",
-      "details": ""
-    },
-    {
       "endpoint": "elb.ru-moscow-1.hc.sbercloud.ru/v2.0",
       "link": "lbaas/loadbalancers",
       "type_in_json": "loadbalancers",

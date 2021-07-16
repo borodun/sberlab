@@ -9,29 +9,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"time"
 )
 
-type Queries struct {
-	Limit  string
-	Offset string
-}
-
-type Token struct {
-	Token        string
-	CreationTime time.Time
-}
-
-var Tok Token
-var QueryParams Queries
-
-func RequestGet(reqUrl string) string {
+func RequestDelete(reqUrl string, method string) string {
 	signer := core.Signer{
 		Key:    os.Getenv("ACCESSKEY"),
 		Secret: os.Getenv("SECRETKEY"),
 	}
 
-	req, err := http.NewRequest("GET", reqUrl, ioutil.NopCloser(bytes.NewBuffer([]byte(""))))
+	req, err := http.NewRequest(method, reqUrl, ioutil.NopCloser(bytes.NewBuffer([]byte(""))))
 	if err != nil {
 		fmt.Println(err)
 	}

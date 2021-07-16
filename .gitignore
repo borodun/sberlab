@@ -20,3 +20,4 @@ config.env
 KeyPair*.pem
 token.txt
 exportScript.sh
+secrets.yaml

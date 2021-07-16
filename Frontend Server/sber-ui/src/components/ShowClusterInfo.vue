@@ -6,7 +6,7 @@
       </el-col>
     </el-row>
     <Auth v-on:success="ShowSuccess($event)" v-on:error="ShowError($event)"></Auth>
-    <Table v-on:error="ShowError($event)"></Table>
+    <Table v-on:success="ShowSuccess($event)" v-on:error="ShowError($event)"></Table>
     <el-collapse accordion>
       <el-collapse-item title="Raw Data" name="1">
         <div><span style="white-space: pre-wrap;">{{ this.info }}</span></div>
@@ -32,7 +32,6 @@ export default {
         offset: 0,
         limit: 10,
       },
-      info: {}
     }
   },
   methods: {

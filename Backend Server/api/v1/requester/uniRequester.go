@@ -18,7 +18,7 @@ var empty = make([]entites.Entity, 1)
 func getBackendServrs(groupID string) ([]entites.Entity, string) {
 	var reqUrl = fmt.Sprintf("https://elb.ru-moscow-1.hc.sbercloud.ru/v2.0/lbaas/pools/%s/members?limit=%s", groupID, QueryParams.Limit)
 	logger.Infof("Request to sber: " + reqUrl)
-	respStr := MakeRequest(reqUrl)
+	respStr := RequestGet(reqUrl)
 
 	var err error
 	errStr := errorcheck.CheckError(respStr)
@@ -43,7 +43,7 @@ func getBackendServrs(groupID string) ([]entites.Entity, string) {
 	return ents.Entities, ""
 }
 
-func MakeUniRequest(uniReq *entites.EntityInfo) ([]entites.Entity, string) {
+func MakeUniRequest(uniReq *entites.EntityGetInfo) ([]entites.Entity, string) {
 	jsonType := uniReq.TypeInJSON
 	var reqUrl string
 	if jsonType == "loadbalancers" || jsonType == "listeners" || jsonType == "pools" {
@@ -54,7 +54,7 @@ func MakeUniRequest(uniReq *entites.EntityInfo) ([]entites.Entity, string) {
 
 	logger.Infof("Request to sber: " + reqUrl)
 
-	respStr := MakeRequest(reqUrl)
+	respStr := RequestGet(reqUrl)
 	//logger.Infof("Response from sber: " + respStr)
 
 	var err error

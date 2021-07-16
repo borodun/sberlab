@@ -1,10 +1,10 @@
 package main
 
 import (
+	"Getter/core"
 	"bytes"
 	"encoding/csv"
 	"fmt"
-	"github.com/borodun/SberLab/core"
 	"io/ioutil"
 	"net/http"
 	"os"

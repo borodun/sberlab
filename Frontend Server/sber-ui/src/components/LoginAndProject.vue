@@ -58,9 +58,9 @@ export default {
         console.log(error);
       });
     },
-    ShowProjects(){
+    ShowProjects() {
       if (!this.gotProjects) {
-        axios_instance.get("/info/projects").then(function (response) {
+        axios_instance.get("/get/projects").then(function (response) {
           console.log(response.data)
           if (response.data.error.length === 0) {
             this.gotProjects = true
@@ -70,10 +70,11 @@ export default {
           }
         }.bind(this)).catch(function (error) {
           console.log(error);
-        })}
+        })
+      }
     },
-    CheckToken(){
-      axios_instance.get("/info/token").then(function (response) {
+    CheckToken() {
+      axios_instance.get("/get/token").then(function (response) {
         console.log(response.data)
         if (response.data.length === 0) {
           this.disabled = false

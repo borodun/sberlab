@@ -1,9 +1,9 @@
 package Request
 
 import (
+	"CLI/CLI/Request/core"
 	"bytes"
 	"fmt"
-	"github.com/borodun/SberLab/core"
 	"io"
 	"io/ioutil"
 	"net/http"

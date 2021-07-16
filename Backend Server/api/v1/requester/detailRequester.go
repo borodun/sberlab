@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func GetEntityDetail(uniReq *entites.EntityInfo, ID string) (string, bool) {
+func GetEntityDetail(uniReq *entites.EntityGetInfo, ID string) (string, bool) {
 	jsonType := uniReq.TypeInJSON
 	var reqUrl string
 	if jsonType == "loadbalancers" || jsonType == "listeners" || jsonType == "pools" {
@@ -18,7 +18,7 @@ func GetEntityDetail(uniReq *entites.EntityInfo, ID string) (string, bool) {
 
 	logger.Infof("Request to sber: " + reqUrl)
 
-	respStr := MakeRequest(reqUrl)
+	respStr := RequestGet(reqUrl)
 	logger.Infof("Response from sber: " + respStr)
 
 	errStr := errorcheck.CheckError(respStr)

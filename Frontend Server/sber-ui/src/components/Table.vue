@@ -26,27 +26,23 @@
         <el-table-column
             prop="name"
             label="Name"
-            width="130"
-            sortable>
+            width="130">
         </el-table-column>
         <el-table-column
             prop="type"
             label="Type"
-            width="100"
-            sortable>
+            width="100">
         </el-table-column>
         <el-table-column
             fixed
             prop="id"
             label="ID"
-            width="155"
-            sortable>
+            width="155">
         </el-table-column>
         <el-table-column
             prop="status"
             label="Status"
-            width="130"
-            sortable>
+            width="130">
         </el-table-column>
         <el-table-column
             label="Operations"
@@ -77,15 +73,28 @@
     </el-form-item>
   </el-form>
   <el-dialog
+      title="Answer"
+      v-model="deleteDialogVisible"
+      width="50%">
+    <div>
+      <vue-json-pretty :data="deleteText" :showDoubleQuotes="false" :showLength="true" :deep="2"></vue-json-pretty>
+    </div>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" @click="deleteDialogVisible = false">OK</el-button>
+      </span>
+    </template>
+  </el-dialog>
+  <el-dialog
       title="Details"
-      v-model="dialogVisible"
+      v-model="detailsDialogVisible"
       width="80%">
     <div>
       <vue-json-pretty :data="detail.details" :showDoubleQuotes="false" :showLength="true" :deep="2"></vue-json-pretty>
     </div>
     <template #footer>
       <span class="dialog-footer">
-        <el-button type="primary" @click="dialogVisible = false">OK</el-button>
+        <el-button type="primary" @click="detailsDialogVisible = false">OK</el-button>
       </span>
     </template>
   </el-dialog>
@@ -104,17 +113,23 @@ export default {
   name: "Table",
   data() {
     return {
-      dialogVisible: false,
+      deleteDialogVisible: false,
+      deleteText: {},
+
+      detailsDialogVisible: false,
       detail: {
         error: "",
-        details: {}
+        details: ""
       },
+
       buttonText: "Query",
       loading: false,
+
       form: {
         offset: 0,
         limit: 10,
       },
+
       projectData: {
         error: "",
         entities_array: [{
@@ -123,6 +138,7 @@ export default {
           status: "",
           type: ""
         }],
+
         multipleSelection: []
       }
     }
@@ -137,7 +153,7 @@ export default {
       //console.log("Offset: " + this.form.offset + " Limit: " + this.form.limit)
       this.loading = true
       this.buttonText = "Querying"
-      axios_instance.get("/info/entities",
+      axios_instance.get("/get/entities",
           {
             params: {
               offset: this.form.offset,
@@ -167,7 +183,7 @@ export default {
     },
     showDetail(row) {
       console.log(this.projectData.entities_array[row].id)
-      axios_instance.get("/info/detail",
+      axios_instance.get("/get/detail",
           {
             params: {
               id: this.projectData.entities_array[row].id,
@@ -180,13 +196,31 @@ export default {
           this.$emit('error', this.detail.error)
         }
         this.detail.details = JSON.parse(this.detail.details)
-        this.dialogVisible = true
+        this.detailsDialogVisible = true
       }, error => {
         console.error(error);
       });
     },
     deleteElement(row) {
       console.log(this.projectData.entities_array[row].id)
+      axios_instance.delete("/delete", {
+        data: {
+          id: this.projectData.entities_array[row].id,
+          type: this.projectData.entities_array[row].type,
+        }
+      }).then(result => {
+        if (result.data.answer.length === 0) {
+          this.$emit('success', "Deleted " + this.projectData.entities_array[row].name)
+          this.projectData.entities_array.splice(row,1)
+        }
+        this.deleteText = JSON.parse(result.data.answer)
+        if (this.deleteText.message) {
+          this.deleteText.message = JSON.parse(this.deleteText.message)
+        }
+        this.deleteDialogVisible = true
+      }, error => {
+        console.error(error);
+      });
     }
   }
 }

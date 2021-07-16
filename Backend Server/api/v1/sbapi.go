@@ -30,7 +30,7 @@ func NewSbAPI() *SbAPI {
 func (api *SbAPI) Register(wsContainer *restful.Container, insecure bool) error {
 	cors := restful.CrossOriginResourceSharing{
 		AllowedHeaders: []string{"Content-Type", "Accept", "Access-Control-Allow-Headers"},
-		AllowedMethods: []string{"PUT", "POST", "GET", "DELETE"},
+		AllowedMethods: []string{"PUT", "POST", "GET", "DELETE", "OPTIONS"},
 		AllowedDomains: []string{"*"},
 		CookiesAllowed: false,
 		Container:      wsContainer}
@@ -44,6 +44,7 @@ func (api *SbAPI) Register(wsContainer *restful.Container, insecure bool) error 
 
 	info.NewResource().RegisterGet(wsContainer)
 	info.NewResource().RegisterPost(wsContainer)
+	info.NewResource().RegisterDelete(wsContainer)
 
 	return nil
 }

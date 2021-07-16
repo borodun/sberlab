@@ -21,12 +21,24 @@ spec:
         - containerPort: 9999
         env:
           - name: LOGIN
-            value: "$(LOGIN)"
+            valueFrom:
+              secretKeyRef:
+                name: secrets-for-backend
+                key: login
           - name: PASSWORD
-            value: "${PASSWORD}"
+            valueFrom:
+              secretKeyRef:
+                name: secrets-for-backend
+                key: password
           - name: ACCESSKEY
-            value: $(ACCESSKEY)
+            valueFrom:
+              secretKeyRef:
+                name: secrets-for-backend
+                key: accesskey
           - name: SECRETKEY
-            value: ${SECRETKEY}
+            valueFrom:
+              secretKeyRef:
+                name: secrets-for-backend
+                key: secretkey
 
 

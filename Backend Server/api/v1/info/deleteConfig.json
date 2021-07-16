@@ -1,0 +1,71 @@
+{
+  "entities": [
+    {
+      "endpoint": "ecs.ru-moscow-1.hc.sbercloud.ru/v2.1",
+      "link": "servers",
+      "type": "ecs",
+      "projectIDRequired": true
+    },
+    {
+      "endpoint": "vpc.ru-moscow-1.hc.sbercloud.ru/v1",
+      "link": "vpcs",
+      "type": "vpc",
+      "projectIDRequired": true
+    },
+    {
+      "endpoint": "evs.ru-moscow-1.hc.sbercloud.ru/v2",
+      "link": "volumes",
+      "type": "volume",
+      "projectIDRequired": true
+    },
+    {
+      "endpoint": "vpc.ru-moscow-1.hc.sbercloud.ru/v2.0",
+      "link": "subnets",
+      "type": "subnet",
+      "projectIDRequired": false
+    },
+    {
+      "endpoint": "vpc.ru-moscow-1.hc.sbercloud.ru/v2.0",
+      "link": "security-groups",
+      "type": "sg",
+      "projectIDRequired": true
+    },
+    {
+      "endpoint": "nat.ru-moscow-1.hc.sbercloud.ru/v2",
+      "link": "nat_gateways",
+      "type": "nat",
+      "projectIDRequired": true
+    },
+    {
+      "endpoint": "nat.ru-moscow-1.hc.sbercloud.ru/v2.0",
+      "link": "snat_rules",
+      "type": "snat",
+      "projectIDRequired": false
+    },
+    {
+      "endpoint": "nat.ru-moscow-1.hc.sbercloud.ru/v2.0",
+      "link": "dnat_rules",
+      "type": "dnat",
+      "projectIDRequired": false
+    },
+    {
+      "endpoint": "elb.ru-moscow-1.hc.sbercloud.ru/v2.0",
+      "link": "lbaas/loadbalancers",
+      "type": "elb",
+      "details": "",
+      "projectIDRequired": false
+    },
+    {
+      "endpoint": "elb.ru-moscow-1.hc.sbercloud.ru/v2.0",
+      "link": "lbaas/listeners",
+      "type": "listener",
+      "projectIDRequired": false
+    },
+    {
+      "endpoint": "elb.ru-moscow-1.hc.sbercloud.ru/v2.0",
+      "link": "lbaas/pools",
+      "type": "pool",
+      "projectIDRequired": false
+    }
+  ]
+}

@@ -26,7 +26,7 @@ type ECSs struct {
 func GetECSs(limit string, offset string) ECSs {
 	var reqUrl = fmt.Sprintf("https://ecs.ru-moscow-1.hc.sbercloud.ru/v1/%s/cloudservers/detail?offset=%s&limit=%s", auth.InfoAuth.ProjectID, offset, limit)
 
-	ecssList := requester.MakeRequest(reqUrl)
+	ecssList := requester.RequestGet(reqUrl)
 	logger.Infof("Response from sber: " + ecssList)
 
 	var ecss ECSs

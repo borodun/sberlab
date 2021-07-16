@@ -17,7 +17,7 @@ import (
 
 var logger = loggo.GetLogger("info")
 
-var utilArray []entites.EntityInfo
+var getConfigArray []entites.EntityGetInfo
 
 const (
 	queryParamOffset = "offset"
@@ -39,7 +39,7 @@ func (c *Resource) RegisterGet(container *restful.Container) *Resource {
 	ws.Consumes(restful.MIME_JSON)
 	ws.Produces(restful.MIME_JSON)
 
-	ws.Path("/info").Doc("Sb API version 1")
+	ws.Path("/get").Doc("Sb API version 1")
 
 	ws.Route(ws.GET(fmt.Sprintf("/entities")).To(c.GetProjectEntities).
 		Param(ws.QueryParameter(queryParamOffset, "Specifies a page number").DataType("integer")).
@@ -64,7 +64,7 @@ func (c *Resource) RegisterGet(container *restful.Container) *Resource {
 
 	container.Add(ws)
 
-	utilArray = GetEntities()
+	getConfigArray = GetEntities()
 
 	return c
 }
@@ -76,9 +76,9 @@ func (c *Resource) GetDetail(request *restful.Request, response *restful.Respons
 	var details entites.Details
 	var detailStr string
 	var check bool
-	for i := range utilArray {
-		if utilArray[i].Type == Type {
-			detailStr, check = requester.GetEntityDetail(&utilArray[i], ID)
+	for i := range getConfigArray {
+		if getConfigArray[i].Type == Type {
+			detailStr, check = requester.GetEntityDetail(&getConfigArray[i], ID)
 			if check {
 				details.Error = detailStr
 				break
@@ -91,14 +91,14 @@ func (c *Resource) GetDetail(request *restful.Request, response *restful.Respons
 	response.WriteEntity(details)
 }
 
-func GetEntities() []entites.EntityInfo {
-	var util entites.EntityArray
-	config, _ := ioutil.ReadFile("./api/v1/info/config.json")
+func GetEntities() []entites.EntityGetInfo {
+	var util entites.EntityGetArray
+	config, _ := ioutil.ReadFile("./api/v1/info/getConfig.json")
 	err := json.Unmarshal(config, &util)
 	if err != nil {
 		return nil
 	}
-	return util.EntityInfos
+	return util.EntityGetInfos
 }
 
 func (c *Resource) GetProjectEntities(request *restful.Request, response *restful.Response) {
@@ -109,8 +109,8 @@ func (c *Resource) GetProjectEntities(request *restful.Request, response *restfu
 	var ent []entites.Entity
 	var answerEnts entites.AnswerEntities
 	var err string
-	for i := 0; i < len(utilArray); i++ {
-		if ent, err = requester.MakeUniRequest(&utilArray[i]); len(err) != 0 {
+	for i := 0; i < len(getConfigArray); i++ {
+		if ent, err = requester.MakeUniRequest(&getConfigArray[i]); len(err) != 0 {
 			continue
 		}
 		ents = append(ents, ent...)

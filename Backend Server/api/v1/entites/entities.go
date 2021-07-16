@@ -5,11 +5,26 @@ type Details struct {
 	Details string `json:"details"`
 }
 
-type EntityArray struct {
-	EntityInfos []EntityInfo `json:"entities"`
+type DeleteAnswer struct {
+	Details string `json:"answer"`
 }
 
-type EntityInfo struct {
+type EntityDeleteArray struct {
+	EntityDeleteInfos []EntityDeleteInfo `json:"entities"`
+}
+
+type EntityDeleteInfo struct {
+	Endpoint   string `json:"endpoint"`
+	Link       string `json:"link"`
+	Type       string `json:"type"`
+	IDRequired bool   `json:"projectIDRequired"`
+}
+
+type EntityGetArray struct {
+	EntityGetInfos []EntityGetInfo `json:"entities"`
+}
+
+type EntityGetInfo struct {
 	Endpoint   string `json:"endpoint"`
 	Link       string `json:"link"`
 	Type       string `json:"type"`
