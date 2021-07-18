@@ -111,7 +111,7 @@ func (c *Resource) GetProjectEntities(request *restful.Request, response *restfu
 	var err string
 	for i := 0; i < len(getConfigArray); i++ {
 		if ent, err = requester.MakeUniRequest(&getConfigArray[i]); len(err) != 0 {
-			continue
+			break
 		}
 		ents = append(ents, ent...)
 	}

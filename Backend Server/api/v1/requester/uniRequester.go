@@ -47,9 +47,9 @@ func MakeUniRequest(uniReq *entites.EntityGetInfo) ([]entites.Entity, string) {
 	jsonType := uniReq.TypeInJSON
 	var reqUrl string
 	if jsonType == "loadbalancers" || jsonType == "listeners" || jsonType == "pools" {
-		reqUrl = fmt.Sprintf("https://%s/%s%s?limit=%s&offset=%s", uniReq.Endpoint, uniReq.Link, uniReq.Details, QueryParams.Limit, QueryParams.Offset)
+		reqUrl = fmt.Sprintf("https://%s/%s%s?limit=%", uniReq.Endpoint, uniReq.Link, uniReq.Details, QueryParams.Limit)
 	} else {
-		reqUrl = fmt.Sprintf("https://%s/%s/%s%s?limit=%s&offset=%s", uniReq.Endpoint, auth.InfoAuth.ProjectID, uniReq.Link, uniReq.Details, QueryParams.Limit, QueryParams.Offset)
+		reqUrl = fmt.Sprintf("https://%s/%s/%s%s?limit=%s", uniReq.Endpoint, auth.InfoAuth.ProjectID, uniReq.Link, uniReq.Details, QueryParams.Limit)
 	}
 
 	logger.Infof("Request to sber: " + reqUrl)
