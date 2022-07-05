@@ -13,11 +13,3 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-
-*.pem
-auth.auto.tfvars
-config.env
-KeyPair*.pem
-token.txt
-exportScript.sh
-secrets.yaml
