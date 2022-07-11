@@ -1,0 +1,61 @@
+apiVersion: k0sctl.k0sproject.io/v1beta1
+kind: Cluster
+metadata:
+  name: k0s-cluster
+spec:
+  hosts:
+  - ssh:
+      address: <nat-ip>
+      user: root
+      port: 22
+    role: controller+worker
+  - ssh:
+      address: <worker-0-local-ip>
+      user: root
+      port: 22
+      bastion:
+        address: <nat-ip>
+        port: 22
+        user: root
+    role: worker
+  - ssh:
+      address: <worker-1-local-ip>
+      user: root
+      port: 22
+      bastion:
+        address: <nat-ip>
+        user: root
+        port: 22
+    role: worker
+  k0s:
+    version: 1.23.8+k0s.0
+    dynamicConfig: false
+    config:
+      apiVersion: k0s.k0sproject.io/v1beta1
+      kind: Cluster
+      metadata:
+        name: k0s
+      spec:
+        api:
+          k0sApiPort: 9443
+          port: 6443
+        installConfig:
+          users:
+            etcdUser: etcd
+            kineUser: kube-apiserver
+            konnectivityUser: konnectivity-server
+            kubeAPIserverUser: kube-apiserver
+            kubeSchedulerUser: kube-scheduler
+        konnectivity:
+          adminPort: 8133
+          agentPort: 8132
+        network:
+          podCIDR: 10.244.0.0/16
+          provider: calico
+          serviceCIDR: 10.96.0.0/12
+        podSecurityPolicy:
+          defaultPolicy: 00-k0s-privileged
+        storage:
+          type: etcd
+        telemetry:
+          enabled: true
