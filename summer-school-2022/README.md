@@ -47,7 +47,7 @@ k get nodes
 k get all --all-namespaces
 k apply -f manifests/
 ```
-Open _nat-ip_ in browser and check that default nginx page is displayed. Your NAT should allow connection external-ip:80 -> internal-ip:31759 \
+Open _nat-ip_ in browser and check that default nginx page is displayed. Your NAT should allow connection external-ip:30080 -> internal-ip:30080 \
 Check k8s network with [kube-detective](https://github.com/sapcc/kube-detective):
 ```shell
 ./kube-detective
